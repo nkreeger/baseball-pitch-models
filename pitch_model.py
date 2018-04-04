@@ -52,7 +52,7 @@ def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(25)
+  dataset = dataset.batch(10)
 
   iterator = tfe.Iterator(dataset)
   print('')
