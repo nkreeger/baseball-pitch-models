@@ -64,15 +64,15 @@ csv_column_types = [
 
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
-  # Return pitch_type, label, vx0, vyz0, vz0, start_speed, end_speed
+
   pitch_type = parsed_line[31]
   pitch_type_label = tf.string_to_hash_bucket(pitch_type, 17)
   vx0 = parsed_line[22]
   vy0 = parsed_line[23]
   vz0 = parsed_line[24]
   start_speed = parsed_line[11]
-  end_speed = parsed_line[12]
-  return pitch_type, pitch_type_label, vx0, vy0, vz0, start_speed, end_speed
+
+  return pitch_type, pitch_type_label, tf.stack([vx0, vy0, vz0, start_speed])
 
 def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
@@ -86,10 +86,11 @@ class Model(tf.keras.Model):
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(10, use_bias=True, name='dense1', activation='sigmoid')
-    self.dense2 = tf.layers.Dense(17, use_bias=True, name='dense2', activation='softmax')
+    self.dense1 = tf.layers.Dense(10, use_bias=True, name='dense1', activation=tf.nn.sigmoid)
+    self.dense2 = tf.layers.Dense(17, use_bias=True, name='dense2', activation=tf.nn.softmax)
 
   def __call__(self, inputs, training):
+    print 'inputs: {}'.format(inputs)
     y = self.dense1(inputs)
     y = self.dense2(inputs)
     return y
@@ -113,22 +114,15 @@ def main(argv):
   # batch = iterator.next()
   # batch = iterator.next()
   print('')
-  print('--------------------------')
-  print batch
-
-  # 17 pitch types:
-  # pitch_types = tf.one_hot(tf.string_to_number(batch[31]), 17) 
-  # vx0 = batch[22]
-  # vy0 = batch[23]
-  # vz0 = batch[24]
-
-  # print batch[31]
-  # print pitch_types
+  print('')
+  print batch[0]
+  print batch[1]
+  print batch[2]
 
   model = Model()
 
   with tfe.GradientTape() as tape:
-    logits = model(iterator.next(), training=True) 
+    logits = model(batch[2], training=True) 
     print ('logits: {}'.format(logits))
 
 if __name__ == '__main__':
