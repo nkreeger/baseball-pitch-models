@@ -1,4 +1,5 @@
 import sys
+import time
 
 import tensorflow as tf  # pylint: disable=g-bad-import-order
 import tensorflow.contrib.eager as tfe  # pylint: disable=g-bad-import-order
@@ -62,6 +63,7 @@ csv_column_types = [
 # UN - 'Unidentifed' (15)
 # XX - 'Unidentifed' (16)
 
+
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
@@ -71,59 +73,95 @@ def decode_csv(line):
   vy0 = parsed_line[23]
   vz0 = parsed_line[24]
   start_speed = parsed_line[11]
+  end_speed = parsed_line[12]
 
-  return pitch_type, pitch_type_label, tf.stack([vx0, vy0, vz0, start_speed])
+  return pitch_type, tf.one_hot(pitch_type_label, 17), tf.stack([vx0, vy0, vz0, start_speed, end_speed])
+
 
 def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(5)
-  return tfe.Iterator(dataset)
+  dataset = dataset.batch(30)
+  return dataset
+
 
 class Model(tf.keras.Model):
 
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(10, use_bias=True, name='dense1', activation=tf.nn.sigmoid)
-    self.dense2 = tf.layers.Dense(17, use_bias=True, name='dense2', activation=tf.nn.softmax)
+    self.dense1 = tf.layers.Dense(17, use_bias=True, name='dense1', activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(34, use_bias=True, name='dense2', activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(17, use_bias=True, name='dense3', activation=tf.nn.relu)
 
   def __call__(self, inputs, training):
-    print 'inputs: {}'.format(inputs)
     y = self.dense1(inputs)
-    y = self.dense2(inputs)
+    y = self.dense2(y)
+    y = self.dense3(y)
     return y
-    # print inputs
 
-def model():
-  #
-  # TODO - left off right here. Need a combo of this and the mnist_eager
-  #
-  inputs = tf.keras.layers.Input((4,))
-  dense1 = tf.keras.layers.Dense(10, use_bias=True, name='Dense1', activation='sigmoid')(inputs)
-  dense2 = tf.keras.layers.Dense(17, use_bias=True, name='Dense2', activation='softmax')(dense1)
-  model = tf.keras.models.Model(inputs=[inputs], outputs=[dense2])
-  model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+# def compute_accuracy(logits, labels):
+#   predictions = tf.argmax(logits, axis=1, output_type=tf.int64)
+#   labels = tf.cast(labels, tf.int64)
+#   batch_size = int(logits.shape[0])
+#   print('logits.shape: {}'.format(logits.shape))
+#   print('predictions.shape : {}'.format(predictions.shape))
+#   print('labels.shape      : {}'.format(labels.shape))
+#   print('batch_size        : {}'.format(batch_size))
+#   return tf.reduce_sum(
+#       tf.cast(tf.equal(predictions, labels), dtype=tf.float32)) / batch_size
+
+
+def loss(logits, labels):
+  return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels))
+
+
+def train(model, optimizer, dataset, step_counter):
+  start = time.time()
+
+  for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
+    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
+      with tfe.GradientTape() as tape:
+        logits = model(data, training=True)
+        loss_value = loss(logits, labels)
+
+        tf.contrib.summary.scalar('loss', loss_value)
+        # tf.contrib.summary.scalar('accuracy', compute_accuracy(logits, labels))
+
+      grads = tape.gradient(loss_value, model.variables)
+
+      optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
+
+      if batch % 100 == 0:
+        rate = 100 / (time.time() - start)
+        print(' - Step #%d\tLoss: %.6f (%d steps/sec)' % (batch, loss_value, rate))
+        start = time.time()
+
+
+def debug_dataset(dataset):
+  for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
+    print('%d - ' % batch)
+
 
 def main(argv):
   tfe.enable_eager_execution()
 
-  iterator = load_training_data()
-  batch = iterator.next()
-  # batch = iterator.next()
-  # batch = iterator.next()
-  print('')
-  print('')
-  print batch[0]
-  print batch[1]
-  print batch[2]
-
   model = Model()
+  dataset = load_training_data()
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.05)
 
-  with tfe.GradientTape() as tape:
-    logits = model(batch[2], training=True) 
-    print ('logits: {}'.format(logits))
+  step_counter = tf.train.get_or_create_global_step()
+  summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
+
+  for _ in range(100):
+    start = time.time()
+    with summary_writer.as_default():
+      train(model, optimizer, dataset, step_counter)
+    end = time.time()
+    print(' ** Train time for epoch #%d (%d total steps): %f\n' % (_ + 1, step_counter.numpy(), end - start))
+
 
 if __name__ == '__main__':
   main(argv=sys.argv)
