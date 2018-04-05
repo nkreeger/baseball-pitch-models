@@ -37,43 +37,21 @@ csv_column_types = [
   [],   # break_angle (29)
   [],   # break_length (30)
   [''], # pitch_type (31)
-  [],   # type_confidence (32)
-  [],   # zone (33)
-  [],   # nasty (34)
-  [],   # spin_dir (35)
-  [],   # spin_rate (36)
+  [0],  # pitch_code (32)
+  [],   # type_confidence (33)
+  [],   # zone (34)
+  [],   # nasty (35)
+  [],   # spin_dir (36)
+  [],   # spin_rate (37)
 ]
-
-# Pitch type definitions
-# FA - 'Fastball' (0)
-# FF - 'Four-seam Fastball' (1)
-# FT - 'Two-seam Fastball' (2)
-# FC - 'Fastball (cutter)' (3) 
-# FS - 'Fastball (sinker)' (4)
-# SI - 'Fastball (sinker)' (5)
-# SF - 'Fastball (split-fingered)' (6)
-# SL - 'Slider' (7)
-# CB - 'Curveball' (8)
-# CU - 'Curveball' (9)
-# KC - 'Kunckle-curve' (10)
-# KN - 'Knuckleball' (11)
-# EP - 'Eephus' (12)
-# PO - 'Pitch out' (13)
-# FO - 'Pitch out' (14)
-# UN - 'Unidentifed' (15)
-# XX - 'Unidentifed' (16)
 
 
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
   pitch_type = parsed_line[31]
-  pitch_type_label = tf.string_to_hash_bucket(pitch_type, 12)
-  vx0 = parsed_line[22]
-  vy0 = parsed_line[23]
-  vz0 = parsed_line[24]
-  start_speed = parsed_line[11]
-  end_speed = parsed_line[12]
+  pitch_code = parsed_line[32]
+  pitch_type_label = tf.one_hot(pitch_code, 12)
 
   break_y = parsed_line[28]
   break_angle = parsed_line[29]
@@ -81,14 +59,14 @@ def decode_csv(line):
   spin_rate = parsed_line[35]
 
   data = tf.stack([break_y, break_angle, break_length, spin_rate])
-  return pitch_type, tf.one_hot(pitch_type_label, 12), data
+  return pitch_type, pitch_type_label, data
 
 
 def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(30)
+  dataset = dataset.batch(10)
   return dataset
 
 
@@ -108,16 +86,12 @@ class Model(tf.keras.Model):
     return y
 
 
-# def compute_accuracy(logits, labels):
-#   predictions = tf.argmax(logits, axis=1, output_type=tf.int64)
-#   labels = tf.cast(labels, tf.int64)
-#   batch_size = int(logits.shape[0])
-#   print('logits.shape: {}'.format(logits.shape))
-#   print('predictions.shape : {}'.format(predictions.shape))
-#   print('labels.shape      : {}'.format(labels.shape))
-#   print('batch_size        : {}'.format(batch_size))
-#   return tf.reduce_sum(
-#       tf.cast(tf.equal(predictions, labels), dtype=tf.float32)) / batch_size
+def compute_accuracy(logits, labels):
+  predictions = tf.argmax(logits, axis=1, output_type=tf.int64)
+  labels = tf.argmax(labels, axis=1, output_type=tf.int64)
+  batch_size = int(logits.shape[0])
+  return tf.reduce_sum(
+      tf.cast(tf.equal(predictions, labels), dtype=tf.float32)) / batch_size
 
 
 def loss(logits, labels):
@@ -127,23 +101,31 @@ def loss(logits, labels):
 def train(model, optimizer, dataset, step_counter):
   start = time.time()
 
+  # pitch_str, labels, data = tfe.Iterator(dataset).next()
+  # for batch in range(5000):
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
     with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
       with tfe.GradientTape() as tape:
         logits = model(data, training=True)
         loss_value = loss(logits, labels)
+        accuracy = compute_accuracy(logits, labels)
 
         tf.contrib.summary.scalar('loss', loss_value)
-        # tf.contrib.summary.scalar('accuracy', compute_accuracy(logits, labels))
+        tf.contrib.summary.scalar('accuracy', accuracy)
 
       grads = tape.gradient(loss_value, model.variables)
-
       optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
 
       if batch % 100 == 0:
+        accuracy = compute_accuracy(logits, labels)
         rate = 100 / (time.time() - start)
-        print(' - Step #%d\tLoss: %.6f (%d steps/sec)' % (batch, loss_value, rate))
+        print(' - Step #%d\tLoss: %.6f, Accur: %.2f (%d steps/sec)' % (batch, loss_value, accuracy, rate))
         start = time.time()
+
+  # print(pitch_str)
+  # print(tf.argmax(labels, axis=1, output_type=tf.int64))
+  # test = model(data, training=False)
+  # print(tf.argmax(test, axis=1, output_type=tf.int64))
 
 
 def debug_dataset(dataset):
@@ -156,10 +138,13 @@ def main(argv):
 
   model = Model()
   dataset = load_training_data()
-  optimizer = tf.train.AdagradOptimizer(learning_rate=0.01)
+  optimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.5)
 
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
+
+  # with summary_writer.as_default():
+  #   train(model, optimizer, dataset, step_counter)
 
   for _ in range(100):
     start = time.time()
