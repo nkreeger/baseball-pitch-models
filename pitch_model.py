@@ -68,14 +68,14 @@ def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
   pitch_type = parsed_line[31]
-  pitch_type_label = tf.string_to_hash_bucket(pitch_type, 17)
+  pitch_type_label = tf.string_to_hash_bucket(pitch_type, 12)
   vx0 = parsed_line[22]
   vy0 = parsed_line[23]
   vz0 = parsed_line[24]
   start_speed = parsed_line[11]
   end_speed = parsed_line[12]
 
-  return pitch_type, tf.one_hot(pitch_type_label, 17), tf.stack([vx0, vy0, vz0, start_speed, end_speed])
+  return pitch_type, tf.one_hot(pitch_type_label, 12), tf.stack([vx0, vy0, vz0, start_speed, end_speed])
 
 
 def load_training_data():
@@ -91,9 +91,9 @@ class Model(tf.keras.Model):
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(17, use_bias=True, name='dense1', activation=tf.nn.relu)
-    self.dense2 = tf.layers.Dense(34, use_bias=True, name='dense2', activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(17, use_bias=True, name='dense3', activation=tf.nn.relu)
+    self.dense1 = tf.layers.Dense(12, use_bias=True, name='dense1', activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(24, use_bias=True, name='dense2', activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(12, use_bias=True, name='dense3', activation=tf.nn.relu)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
