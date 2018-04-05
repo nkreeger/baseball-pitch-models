@@ -81,6 +81,20 @@ def load_training_data():
   dataset = dataset.batch(5)
   return tfe.Iterator(dataset)
 
+class Model(tf.keras.Model):
+
+  def __init__(self):
+    super(Model, self).__init__()
+
+    self.dense1 = tf.layers.Dense(10, use_bias=True, name='dense1', activation='sigmoid')
+    self.dense2 = tf.layers.Dense(17, use_bias=True, name='dense2', activation='softmax')
+
+  def __call__(self, inputs, training):
+    y = self.dense1(inputs)
+    y = self.dense2(inputs)
+    return y
+    # print inputs
+
 def model():
   #
   # TODO - left off right here. Need a combo of this and the mnist_eager
@@ -98,6 +112,8 @@ def main(argv):
   batch = iterator.next()
   # batch = iterator.next()
   # batch = iterator.next()
+  print('')
+  print('--------------------------')
   print batch
 
   # 17 pitch types:
@@ -109,11 +125,11 @@ def main(argv):
   # print batch[31]
   # print pitch_types
 
-  model_ = model()
+  model = Model()
 
-  # with tfe.GradientTape() as tape:
-  #   logits = model(iterator.next(), training=True) 
-  #   print ('logits: {}'.format(logits))
+  with tfe.GradientTape() as tape:
+    logits = model(iterator.next(), training=True) 
+    print ('logits: {}'.format(logits))
 
 if __name__ == '__main__':
   main(argv=sys.argv)
