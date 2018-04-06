@@ -1,3 +1,4 @@
+import math
 import sys
 import time
 import tensorflow as tf
@@ -11,14 +12,23 @@ class Model(tf.keras.Model):
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(48, use_bias=True, name='dense1', activation=tf.nn.relu)
-    self.dense2 = tf.layers.Dense(24, use_bias=True, name='dense2', activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(12, use_bias=False, name='dense3', activation=tf.nn.relu)
+    initializer1 = tf.truncated_normal_initializer(0.0, 1.0 / math.sqrt(12))
+    initializer2 = tf.truncated_normal_initializer(0.0, 1.0 / math.sqrt(12))
+
+    self.dense1 = tf.layers.Dense(48, activation=tf.nn.relu, kernel_initializer=initializer1)
+    self.dense2 = tf.layers.Dense(24, activation=tf.nn.relu, kernel_initializer=initializer1)
+    self.dense3 = tf.layers.Dense(12, activation=tf.nn.relu, kernel_initializer=initializer1)
+    self.dropout1 = tf.layers.Dropout(0.1)
+    self.dropout2 = tf.layers.Dropout(0.25)
+    self.dropout3 = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
+    y = self.dropout1(y, training=training)
     y = self.dense2(y)
+    y = self.dropout2(y, training=training)
     y = self.dense3(y)
+    y = self.dropout3(y, training=training)
     return y
 
 
@@ -37,15 +47,13 @@ def loss(logits, labels):
 def train(model, optimizer, dataset, step_counter):
   start = time.time()
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
-    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
-      train_loop(model, optimizer, step_counter, batch, labels, data)
+    train_loop(model, optimizer, step_counter, batch, labels, data)
 
 
 def train_same_batch(model, optimizer, pitch_str, labels, data, step_counter):
   start = time.time()
   for idx in range(100):
-    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
-      train_loop(model, optimizer, step_counter, idx, labels, data)
+    train_loop(model, optimizer, step_counter, idx, labels, data)
 
 
 def train_loop(model, optimizer, step_counter, batch, labels, data):
@@ -53,9 +61,6 @@ def train_loop(model, optimizer, step_counter, batch, labels, data):
     logits = model(data, training=True)
     loss_value = loss(logits, labels)
     accuracy = compute_accuracy(logits, labels)
-
-    tf.contrib.summary.scalar('loss', loss_value)
-    tf.contrib.summary.scalar('accuracy', accuracy)
 
   grads = tape.gradient(loss_value, model.variables)
   optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
@@ -76,22 +81,20 @@ def main(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  train_dataset = load_data('training_data.csv')
-  test_dataset = load_data('test_data.csv')
+  train_dataset = load_data('training_data.csv', 1000)
+  test_dataset = load_data('test_data.csv', 1000)
   test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
-  summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
-
-  # optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
-  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
+  optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+  # optimizer = tf.train.AdagradOptimizer(learning_rate=0.01)
+  # optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
 
   for _ in range(100):
     start = time.time()
-    with summary_writer.as_default():
-      # TODO(kreeger): Gate this.
-      train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-      # train(model, optimizer, train_dataset, step_counter)
+    # TODO(kreeger): Gate this.
+    # train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+    train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
