@@ -1,6 +1,5 @@
 import sys
 import time
-
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
@@ -85,7 +84,7 @@ def main(argv):
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
   # optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
-  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
 
   for _ in range(100):
     start = time.time()

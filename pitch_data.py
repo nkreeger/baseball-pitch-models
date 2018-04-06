@@ -67,10 +67,10 @@ def decode_csv(line):
   return pitch_type, pitch_type_label, data
 
 
-def load_data(filename):
+def load_data(filename, batchsize=100):
   dataset = tf.data.TextLineDataset([filename])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(100)
+  dataset = dataset.batch(batchsize)
   return dataset
 
