@@ -2,18 +2,18 @@ import sys
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data
+from pitch_data import load_data,NUM_PITCH_CLASSES
 
 
 def main(argv):
   tfe.enable_eager_execution()
 
-  dataset = load_data('test_data.csv', 1)
+  dataset = load_data('training_data.csv', 1)
 
   # TODO(kreeger): This can be vectorized.
   buckets = []
-  for _ in range(12):
-    buckets.append(tf.zeros([3], tf.float32))
+  for _ in range(NUM_PITCH_CLASSES):
+    buckets.append(tf.zeros([5], tf.float32))
 
   entries = 0
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
@@ -29,7 +29,9 @@ def main(argv):
     break_y = bucket[0][0]
     break_angle = bucket[0][1]
     break_length = bucket[0][2]
-    print('{},{},{},{}'.format(index, break_y, break_angle, break_length))
+    pfx_x = bucket[0][3]
+    spin_rate = bucket[0][4]
+    print('{},{},{},{},{}'.format(break_y, break_angle, break_length, pfx_x, spin_rate))
     index = index + 1
 
 

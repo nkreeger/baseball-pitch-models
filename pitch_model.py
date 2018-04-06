@@ -4,31 +4,23 @@ import time
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data
-
+from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES
 
 class Model(tf.keras.Model):
 
   def __init__(self):
     super(Model, self).__init__()
 
-    initializer1 = tf.truncated_normal_initializer(0.0, 1.0 / math.sqrt(12))
-    initializer2 = tf.truncated_normal_initializer(0.0, 1.0 / math.sqrt(12))
-
-    self.dense1 = tf.layers.Dense(48, activation=tf.nn.relu, kernel_initializer=initializer1)
-    self.dense2 = tf.layers.Dense(24, activation=tf.nn.relu, kernel_initializer=initializer1)
-    self.dense3 = tf.layers.Dense(12, activation=tf.nn.relu, kernel_initializer=initializer1)
-    self.dropout1 = tf.layers.Dropout(0.1)
-    self.dropout2 = tf.layers.Dropout(0.25)
-    self.dropout3 = tf.layers.Dropout(0.5)
+    self.dense1 = tf.layers.Dense(44, activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(22, activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(11, activation=tf.nn.relu)
+    # self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
-    y = self.dropout1(y, training=training)
     y = self.dense2(y)
-    y = self.dropout2(y, training=training)
     y = self.dense3(y)
-    y = self.dropout3(y, training=training)
+    # y = self.dropout(y, training=training)
     return y
 
 
@@ -81,14 +73,12 @@ def main(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  train_dataset = load_data('training_data.csv', 1000)
-  test_dataset = load_data('test_data.csv', 1000)
+  train_dataset = load_data('training_data.csv', 100)
+  test_dataset = load_data('test_data.csv', 100)
   test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
   optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
-  # optimizer = tf.train.AdagradOptimizer(learning_rate=0.01)
-  # optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
 
   for _ in range(100):
     start = time.time()
