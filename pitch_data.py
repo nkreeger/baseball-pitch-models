@@ -53,20 +53,9 @@ def decode_csv(line):
   pitch_code = parsed_line[32]
   pitch_type_label = tf.one_hot(pitch_code, NUM_PITCH_CLASSES)
 
-  vx0 = parsed_line[22]
-  vy0 = parsed_line[23]
-  vz0 = parsed_line[24]
-
   break_y = parsed_line[28]
   break_angle = parsed_line[29]
   break_length = parsed_line[30]
-
-  pfx_x = parsed_line[15]
-
-  spin_rate = parsed_line[35]
-
-  start_speed = parsed_line[11]
-  end_speed = parsed_line[12]
 
   data = tf.stack([break_y, break_angle, break_length])
   return pitch_type, pitch_type_label, data

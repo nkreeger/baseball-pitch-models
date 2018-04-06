@@ -56,7 +56,7 @@ def train_loop(model, optimizer, step_counter, batch, labels, data):
   grads = tape.gradient(loss_value, model.variables)
   optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
 
-  if batch % 500 == 0:
+  if batch % 100 == 0:
     print(' - Step #%d\tLoss: %.6f' % (batch, loss_value))
 
 
