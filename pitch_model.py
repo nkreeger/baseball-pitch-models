@@ -6,6 +6,7 @@ import tensorflow.contrib.eager as tfe
 
 from pitch_data import load_data
 
+
 class Model(tf.keras.Model):
 
   def __init__(self):
@@ -36,51 +37,40 @@ def loss(logits, labels):
 
 def train(model, optimizer, dataset, step_counter):
   start = time.time()
-
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
     with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
-      with tfe.GradientTape() as tape:
-        logits = model(data, training=True)
-        loss_value = loss(logits, labels)
-        accuracy = compute_accuracy(logits, labels)
+      train_loop(model, optimizer, step_counter, batch, labels, data)
 
-        tf.contrib.summary.scalar('loss', loss_value)
-        tf.contrib.summary.scalar('accuracy', accuracy)
 
-      grads = tape.gradient(loss_value, model.variables)
-      optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
+def train_same_batch(model, optimizer, pitch_str, labels, data, step_counter):
+  start = time.time()
+  for idx in range(100):
+    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
+      train_loop(model, optimizer, step_counter, idx, labels, data)
 
-      if batch % 500 == 0:
-        accuracy = compute_accuracy(logits, labels)
-        print(' - Step #%d\tLoss: %.6f, Accur: %.2f' % (batch, loss_value, accuracy))
-        start = time.time()
+
+def train_loop(model, optimizer, step_counter, batch, labels, data):
+  with tfe.GradientTape() as tape:
+    logits = model(data, training=True)
+    loss_value = loss(logits, labels)
+    accuracy = compute_accuracy(logits, labels)
+
+    tf.contrib.summary.scalar('loss', loss_value)
+    tf.contrib.summary.scalar('accuracy', accuracy)
+
+  grads = tape.gradient(loss_value, model.variables)
+  optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
+
+  if batch % 500 == 0:
+    accuracy = compute_accuracy(logits, labels)
+    print(' - Step #%d\tLoss: %.6f, Accur: %.2f' % (batch, loss_value, accuracy))
+    start = time.time()
 
 
 def test(model, labels, data):
   logits = model(data, training=False)
   accuracy = compute_accuracy(logits, labels)
   print(' --> Test accuracy: %.2f' % (accuracy))
-
-
-def train_one_batch(model, optimizer, pitch_str, labels, data, step_counter):
-  start = time.time()
-  for _ in range(100):
-    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
-      with tfe.GradientTape() as tape:
-        logits = model(data, training=True)
-        loss_value = loss(logits, labels)
-        accuracy = compute_accuracy(logits, labels)
-
-        tf.contrib.summary.scalar('loss', loss_value)
-        tf.contrib.summary.scalar('accuracy', accuracy)
-
-      grads = tape.gradient(loss_value, model.variables)
-      optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
-
-      if _ % 200 == 0:
-        accuracy = compute_accuracy(logits, labels)
-        print(' - Step #%d\tLoss: %.6f, Accuracy: %.2f' % (_, loss_value, accuracy))
-        start = time.time()
 
 
 def main(argv):
@@ -100,8 +90,8 @@ def main(argv):
     start = time.time()
     with summary_writer.as_default():
       # TODO(kreeger): Gate this.
-      train_one_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-      # train(model, optimizer, train_dataset, step_counter)
+      # train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+      train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
