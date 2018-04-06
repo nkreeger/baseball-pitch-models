@@ -126,8 +126,7 @@ def train(model, optimizer, dataset, step_counter):
 
       if batch % 500 == 0:
         accuracy = compute_accuracy(logits, labels)
-        rate = 500 / (time.time() - start)
-        print(' - Step #%d\tLoss: %.6f, Accur: %.2f (%d steps/sec)' % (batch, loss_value, accuracy, rate))
+        print(' - Step #%d\tLoss: %.6f, Accur: %.2f' % (batch, loss_value, accuracy))
         start = time.time()
 
 
@@ -169,7 +168,7 @@ def main(argv):
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
-  optimizer = tf.train.AdagradOptimizer(learning_rate=0.01)
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
 
   for _ in range(100):
     start = time.time()
