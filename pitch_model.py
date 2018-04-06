@@ -60,7 +60,7 @@ def decode_csv(line):
   start_speed = parsed_line[11]
   end_speed = parsed_line[12]
 
-  data = tf.stack([break_y, break_angle, break_length, spin_rate, start_speed, end_speed])
+  data = tf.stack([break_y, break_angle, break_length])
   return pitch_type, pitch_type_label, data
 
 
@@ -68,7 +68,7 @@ def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(5)
+  dataset = dataset.batch(100)
   return dataset
 
 
@@ -76,7 +76,7 @@ def load_test_data():
   dataset = tf.data.TextLineDataset(['test_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(24)
+  dataset = dataset.batch(100)
   return dataset
 
 
@@ -169,7 +169,7 @@ def main(argv):
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
-  optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.01)
 
   for _ in range(100):
     start = time.time()
