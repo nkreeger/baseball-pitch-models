@@ -57,8 +57,10 @@ def decode_csv(line):
   break_angle = parsed_line[29]
   break_length = parsed_line[30]
   spin_rate = parsed_line[35]
+  start_speed = parsed_line[11]
+  end_speed = parsed_line[12]
 
-  data = tf.stack([break_y, break_angle, break_length, spin_rate])
+  data = tf.stack([break_y, break_angle, break_length, spin_rate, start_speed, end_speed])
   return pitch_type, pitch_type_label, data
 
 
@@ -66,7 +68,15 @@ def load_training_data():
   dataset = tf.data.TextLineDataset(['training_data.csv'])
   dataset = dataset.skip(1)
   dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(10)
+  dataset = dataset.batch(5)
+  return dataset
+
+
+def load_test_data():
+  dataset = tf.data.TextLineDataset(['test_data.csv'])
+  dataset = dataset.skip(1)
+  dataset = dataset.map(decode_csv)
+  dataset = dataset.batch(24)
   return dataset
 
 
@@ -101,8 +111,6 @@ def loss(logits, labels):
 def train(model, optimizer, dataset, step_counter):
   start = time.time()
 
-  # pitch_str, labels, data = tfe.Iterator(dataset).next()
-  # for batch in range(5000):
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
     with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
       with tfe.GradientTape() as tape:
@@ -116,42 +124,63 @@ def train(model, optimizer, dataset, step_counter):
       grads = tape.gradient(loss_value, model.variables)
       optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
 
-      if batch % 100 == 0:
+      if batch % 500 == 0:
         accuracy = compute_accuracy(logits, labels)
-        rate = 100 / (time.time() - start)
+        rate = 500 / (time.time() - start)
         print(' - Step #%d\tLoss: %.6f, Accur: %.2f (%d steps/sec)' % (batch, loss_value, accuracy, rate))
         start = time.time()
 
-  # print(pitch_str)
-  # print(tf.argmax(labels, axis=1, output_type=tf.int64))
-  # test = model(data, training=False)
-  # print(tf.argmax(test, axis=1, output_type=tf.int64))
+
+def test(model, labels, data):
+  logits = model(data, training=False)
+  accuracy = compute_accuracy(logits, labels)
+  print(' --> Test accuracy: %.2f' % (accuracy))
 
 
-def debug_dataset(dataset):
-  for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
-    print('%d - ' % batch)
+def train_one_batch(model, optimizer, pitch_str, labels, data, step_counter):
+  start = time.time()
+  for _ in range(100):
+    with tf.contrib.summary.record_summaries_every_n_global_steps(10, global_step=step_counter):
+      with tfe.GradientTape() as tape:
+        logits = model(data, training=True)
+        loss_value = loss(logits, labels)
+        accuracy = compute_accuracy(logits, labels)
+
+        tf.contrib.summary.scalar('loss', loss_value)
+        tf.contrib.summary.scalar('accuracy', accuracy)
+
+      grads = tape.gradient(loss_value, model.variables)
+      optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
+
+      if _ % 200 == 0:
+        accuracy = compute_accuracy(logits, labels)
+        print(' - Step #%d\tLoss: %.6f, Accuracy: %.2f' % (_, loss_value, accuracy))
+        start = time.time()
 
 
 def main(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  dataset = load_training_data()
-  optimizer = tf.train.MomentumOptimizer(learning_rate=0.001, momentum=0.5)
+  train_dataset = load_training_data()
+  test_dataset = load_test_data()
+  test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
-  # with summary_writer.as_default():
-  #   train(model, optimizer, dataset, step_counter)
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.025)
 
   for _ in range(100):
     start = time.time()
     with summary_writer.as_default():
-      train(model, optimizer, dataset, step_counter)
+      # TODO(kreeger): Gate this.
+      train_one_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+      # train(model, optimizer, train_dataset, step_counter)
     end = time.time()
-    print(' ** Train time for epoch #%d (%d total steps): %f\n' % (_ + 1, step_counter.numpy(), end - start))
+    print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
+    test(model, test_labels, test_data)
+    print('')
 
 
 if __name__ == '__main__':
