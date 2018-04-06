@@ -14,13 +14,14 @@ class Model(tf.keras.Model):
     self.dense1 = tf.layers.Dense(44, activation=tf.nn.relu)
     self.dense2 = tf.layers.Dense(22, activation=tf.nn.relu)
     self.dense3 = tf.layers.Dense(11, activation=tf.nn.relu)
-    # self.dropout = tf.layers.Dropout(0.5)
+    self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
+    y = self.dropout(y, training=training)
     y = self.dense2(y)
+    y = self.dropout(y, training=training)
     y = self.dense3(y)
-    # y = self.dropout(y, training=training)
     return y
 
 
@@ -37,13 +38,11 @@ def loss(logits, labels):
 
 
 def train(model, optimizer, dataset, step_counter):
-  start = time.time()
   for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
     train_loop(model, optimizer, step_counter, batch, labels, data)
 
 
 def train_same_batch(model, optimizer, pitch_str, labels, data, step_counter):
-  start = time.time()
   for idx in range(100):
     train_loop(model, optimizer, step_counter, idx, labels, data)
 
@@ -58,9 +57,7 @@ def train_loop(model, optimizer, step_counter, batch, labels, data):
   optimizer.apply_gradients(zip(grads, model.variables), global_step=step_counter)
 
   if batch % 500 == 0:
-    accuracy = compute_accuracy(logits, labels)
-    print(' - Step #%d\tLoss: %.6f, Accur: %.2f' % (batch, loss_value, accuracy))
-    start = time.time()
+    print(' - Step #%d\tLoss: %.6f' % (batch, loss_value))
 
 
 def test(model, labels, data):
