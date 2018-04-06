@@ -11,17 +11,20 @@ class Model(tf.keras.Model):
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(44, activation=tf.nn.relu)
-    self.dense2 = tf.layers.Dense(22, activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(11, activation=tf.nn.relu)
+    self.dense1 = tf.layers.Dense(NUM_PITCH_CLASSES*4, activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(NUM_PITCH_CLASSES*3, activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(NUM_PITCH_CLASSES*2, activation=tf.nn.relu)
+    self.dense4 = tf.layers.Dense(NUM_PITCH_CLASSES, activation=tf.nn.relu)
     self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
-    y = self.dropout(y, training=training)
+    self.dropout = tf.layers.Dropout(0.5)
     y = self.dense2(y)
-    y = self.dropout(y, training=training)
+    self.dropout = tf.layers.Dropout(0.5)
     y = self.dense3(y)
+    self.dropout = tf.layers.Dropout(0.5)
+    y = self.dense4(y)
     return y
 
 
@@ -75,7 +78,8 @@ def main(argv):
   test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
-  optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+  optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+  optimizer = tf.train.MomentumOptimizer(0.01, 0.5)
 
   for _ in range(100):
     start = time.time()
