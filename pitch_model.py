@@ -85,9 +85,9 @@ class Model(tf.keras.Model):
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(12, use_bias=True, name='dense1', activation=tf.nn.relu)
+    self.dense1 = tf.layers.Dense(48, use_bias=True, name='dense1', activation=tf.nn.relu)
     self.dense2 = tf.layers.Dense(24, use_bias=True, name='dense2', activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(12, use_bias=True, name='dense3', activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(12, use_bias=False, name='dense3', activation=tf.nn.relu)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
@@ -169,14 +169,14 @@ def main(argv):
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
-  optimizer = tf.train.AdagradOptimizer(learning_rate=0.025)
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
 
   for _ in range(100):
     start = time.time()
     with summary_writer.as_default():
       # TODO(kreeger): Gate this.
-      train_one_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-      # train(model, optimizer, train_dataset, step_counter)
+      # train_one_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+      train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
