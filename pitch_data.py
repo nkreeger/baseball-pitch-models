@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+# Pitch CSV column definitions
 csv_column_types = [
   [''], # des (0)
   [],   # id (1)
@@ -49,10 +50,16 @@ def decode_csv(line):
   pitch_code = parsed_line[32]
   pitch_type_label = tf.one_hot(pitch_code, 12)
 
+  vx0 = parsed_line[22]
+  vy0 = parsed_line[23]
+  vz0 = parsed_line[24]
+
   break_y = parsed_line[28]
   break_angle = parsed_line[29]
   break_length = parsed_line[30]
+
   spin_rate = parsed_line[35]
+
   start_speed = parsed_line[11]
   end_speed = parsed_line[12]
 

@@ -84,14 +84,15 @@ def main(argv):
   step_counter = tf.train.get_or_create_global_step()
   summary_writer = tf.contrib.summary.create_file_writer(None, flush_millis=10000)
 
-  optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+  # optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+  optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
 
   for _ in range(100):
     start = time.time()
     with summary_writer.as_default():
       # TODO(kreeger): Gate this.
-      # train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-      train(model, optimizer, train_dataset, step_counter)
+      train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+      # train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
