@@ -4,17 +4,18 @@ import time
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES
+from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES,csv_input_fn
 
 class Model(tf.keras.Model):
 
   def __init__(self):
     super(Model, self).__init__()
 
-    self.dense1 = tf.layers.Dense(NUM_PITCH_CLASSES*4, activation=tf.nn.relu)
-    self.dense2 = tf.layers.Dense(NUM_PITCH_CLASSES*3, activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(NUM_PITCH_CLASSES*2, activation=tf.nn.relu)
-    self.dense4 = tf.layers.Dense(NUM_PITCH_CLASSES, activation=tf.nn.relu)
+    initializer = tf.initializers.random_uniform(0.1, 11)
+
+    self.dense1 = tf.layers.Dense(NUM_PITCH_CLASSES*3, activation=tf.nn.relu, kernel_regularizer=initializer)
+    self.dense2 = tf.layers.Dense(NUM_PITCH_CLASSES*2, activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(NUM_PITCH_CLASSES, activation=tf.nn.relu)
     self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
@@ -23,8 +24,6 @@ class Model(tf.keras.Model):
     y = self.dense2(y)
     self.dropout = tf.layers.Dropout(0.5)
     y = self.dense3(y)
-    self.dropout = tf.layers.Dropout(0.5)
-    y = self.dense4(y)
     return y
 
 
@@ -69,7 +68,7 @@ def test(model, labels, data):
   print(' --> Test accuracy: %.2f' % (accuracy))
 
 
-def main(argv):
+def main_old(argv):
   tfe.enable_eager_execution()
 
   model = Model()
@@ -78,19 +77,42 @@ def main(argv):
   test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
-  optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
+  # optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
   optimizer = tf.train.MomentumOptimizer(0.01, 0.5)
 
   for _ in range(100):
     start = time.time()
     # TODO(kreeger): Gate this.
-    # train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-    train(model, optimizer, train_dataset, step_counter)
+    train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
+    # train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
     print('')
 
 
+def main(argv):
+  cols = []
+  cols.append(tf.feature_column.numeric_column(key='break_y'))
+  cols.append(tf.feature_column.numeric_column(key='break_angle'))
+  cols.append(tf.feature_column.numeric_column(key='break_length'))
+
+  classifier = tf.estimator.DNNClassifier(
+          feature_columns=cols,
+          hidden_units=[20, 20],
+          n_classes=11)
+
+  classifier.train(
+          input_fn=lambda:csv_input_fn('training_data.csv'), steps=1000)
+
+  eval_result = classifier.evaluate(
+          input_fn=lambda:csv_input_fn('test_data.csv'))
+  # eval_result = classifier.evaluate(
+  #     input_fn=lambda:iris_data.eval_input_fn(test_x, test_y,
+  #                                             args.batch_size))
+
+  print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+
+
 if __name__ == '__main__':
-  main(argv=sys.argv)
+  tf.app.run(main(argv=sys.argv))

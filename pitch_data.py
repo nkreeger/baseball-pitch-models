@@ -68,3 +68,25 @@ def load_data(filename, batchsize=100):
   dataset = dataset.batch(batchsize)
   return dataset
 
+
+def decode_csv_est(line):
+  parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
+
+  pitch_code = parsed_line[32]
+
+  break_y = parsed_line[28]
+  break_angle = parsed_line[29]
+  break_length = parsed_line[30]
+
+  cols = ['break_y', 'break_angle', 'break_length']
+  features = dict(zip(cols, [break_y, break_angle, break_length]))
+
+  return features, pitch_code
+
+
+def csv_input_fn(filename, batchsize=100):
+  dataset = tf.data.TextLineDataset([filename]).skip(1)
+  dataset = dataset.map(decode_csv_est)
+  dataset = dataset.shuffle(1000).repeat().batch(batchsize)
+  return dataset
+
