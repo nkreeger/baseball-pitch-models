@@ -13,26 +13,36 @@ def main(argv):
   # TODO(kreeger): This can be vectorized.
   buckets = []
   for _ in range(NUM_PITCH_CLASSES):
-    buckets.append(tf.zeros([5], tf.float32))
+    buckets.append({
+        'count':0,
+        'd': tf.zeros([1,10], tf.float32)
+        })
 
   entries = 0
-  for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
-    pitch_type = tf.argmax(labels, axis=1, output_type=tf.int64)
-    pitch_type_idx = int(pitch_type)
-    buckets[pitch_type_idx] = tf.add(buckets[pitch_type_idx], data)
-    entries = entries + 1
+  for (batch, (label, data)) in enumerate(tfe.Iterator(dataset)):
+    pitch_type = tf.argmax(label, axis=1, output_type=tf.int64)
+    idx = int(pitch_type)
+    entries = entries +1
+    buckets[idx]['count'] = buckets[idx]['count'] + 1
+    buckets[idx]['d'] = tf.add(buckets[idx]['d'], data)
 
   print ('entries: {}'.format(entries))
   print ('')
   index = 0
   for bucket in buckets:
-    break_y = bucket[0][0]
-    break_angle = bucket[0][1]
-    break_length = bucket[0][2]
-    pfx_x = bucket[0][3]
-    spin_rate = bucket[0][4]
-    print('{},{},{},{},{}'.format(break_y, break_angle, break_length, pfx_x, spin_rate))
+    count = bucket['count']
+    output = '{},{},'.format(index, count)
+    for idx in xrange(int(bucket['d'].shape[1])):
+      item = float(bucket['d'][0][idx])
+      if item == 0.0:
+        output = output + '0,'
+      else:
+        output = output + '{},'.format(item / count)
+
+    print (output)
     index = index + 1
+    # print('{},{},{},{},{}'.format(break_y, break_angle, break_length, pfx_x, spin_rate))
+  
 
 
 if __name__ == '__main__':

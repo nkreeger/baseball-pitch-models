@@ -4,7 +4,7 @@ import time
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES,csv_input_fn
+from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES,csv_input_fn,csv_eval_fn
 
 class Model(tf.keras.Model):
 
@@ -13,16 +13,15 @@ class Model(tf.keras.Model):
 
     initializer = tf.initializers.random_uniform(0.1, 11)
 
-    self.dense1 = tf.layers.Dense(NUM_PITCH_CLASSES*3, activation=tf.nn.relu, kernel_regularizer=initializer)
-    self.dense2 = tf.layers.Dense(NUM_PITCH_CLASSES*2, activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(NUM_PITCH_CLASSES, activation=tf.nn.relu)
+    self.dense1 = tf.layers.Dense(50, activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(25, activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(11, activation=tf.nn.relu)
     self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
-    self.dropout = tf.layers.Dropout(0.5)
+    # self.dropout = tf.layers.Dropout(0.5)
     y = self.dense2(y)
-    self.dropout = tf.layers.Dropout(0.5)
     y = self.dense3(y)
     return y
 
@@ -40,11 +39,11 @@ def loss(logits, labels):
 
 
 def train(model, optimizer, dataset, step_counter):
-  for (batch, (pitch_str, labels, data)) in enumerate(tfe.Iterator(dataset)):
+  for (batch, (labels, data)) in enumerate(tfe.Iterator(dataset)):
     train_loop(model, optimizer, step_counter, batch, labels, data)
 
 
-def train_same_batch(model, optimizer, pitch_str, labels, data, step_counter):
+def train_same_batch(model, optimizer, labels, data, step_counter):
   for idx in range(100):
     train_loop(model, optimizer, step_counter, idx, labels, data)
 
@@ -68,23 +67,23 @@ def test(model, labels, data):
   print(' --> Test accuracy: %.2f' % (accuracy))
 
 
-def main_old(argv):
+def run_eager(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  train_dataset = load_data('training_data.csv', 100)
-  test_dataset = load_data('test_data.csv', 100)
-  test_pitch_str, test_labels, test_data = tfe.Iterator(test_dataset).next()
+  train_dataset = load_data('training_data.csv', 50)
+  test_dataset = load_data('test_data.csv', 50)
+  test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
-  # optimizer = tf.train.AdamOptimizer(learning_rate=0.01)
-  optimizer = tf.train.MomentumOptimizer(0.01, 0.5)
+  optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+  # optimizer = tf.train.MomentumOptimizer(0.01, 0.5)
 
   for _ in range(100):
     start = time.time()
     # TODO(kreeger): Gate this.
-    train_same_batch(model, optimizer, test_pitch_str, test_labels, test_data, step_counter)
-    # train(model, optimizer, train_dataset, step_counter)
+    # train_same_batch(model, optimizer, test_labels, test_data, step_counter)
+    train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
@@ -93,26 +92,34 @@ def main_old(argv):
 
 def main(argv):
   cols = []
-  cols.append(tf.feature_column.numeric_column(key='break_y'))
-  cols.append(tf.feature_column.numeric_column(key='break_angle'))
-  cols.append(tf.feature_column.numeric_column(key='break_length'))
+  cols.append(tf.feature_column.numeric_column(key='a'))
+  cols.append(tf.feature_column.numeric_column(key='b'))
+  cols.append(tf.feature_column.numeric_column(key='c'))
+  cols.append(tf.feature_column.numeric_column(key='d'))
+  cols.append(tf.feature_column.numeric_column(key='e'))
+  cols.append(tf.feature_column.numeric_column(key='f'))
+  cols.append(tf.feature_column.numeric_column(key='g'))
+  cols.append(tf.feature_column.numeric_column(key='h'))
+  cols.append(tf.feature_column.numeric_column(key='i'))
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[20, 20],
-          n_classes=11)
+          hidden_units=[40, 20],
+          n_classes=NUM_PITCH_CLASSES)
 
-  classifier.train(
-          input_fn=lambda:csv_input_fn('training_data.csv'), steps=1000)
+  for _ in range(100):
+    print('------ TRAIN ----------')
+    classifier.train(
+            input_fn=lambda:csv_input_fn('training_data.csv', batchsize=100), steps=1000)
 
-  eval_result = classifier.evaluate(
-          input_fn=lambda:csv_input_fn('test_data.csv'))
-  # eval_result = classifier.evaluate(
-  #     input_fn=lambda:iris_data.eval_input_fn(test_x, test_y,
-  #                                             args.batch_size))
+    print('------ EVALUATE ----------')
+    eval_result = classifier.evaluate(
+            input_fn=lambda:csv_eval_fn('test_data.csv'))
 
-  print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+    print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
 
 if __name__ == '__main__':
+  tf.logging.set_verbosity(tf.logging.INFO)
+  # run_eager(argv=sys.argv)
   tf.app.run(main(argv=sys.argv))

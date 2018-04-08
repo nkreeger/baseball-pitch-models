@@ -49,16 +49,28 @@ NUM_DATA_INPUTS = 3
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
-  pitch_type = parsed_line[31]
   pitch_code = parsed_line[32]
-  pitch_type_label = tf.one_hot(pitch_code, NUM_PITCH_CLASSES)
+  label = tf.one_hot(pitch_code, NUM_PITCH_CLASSES)
 
   break_y = parsed_line[28]
   break_angle = parsed_line[29]
   break_length = parsed_line[30]
 
-  data = tf.stack([break_y, break_angle, break_length])
-  return pitch_type, pitch_type_label, data
+  ax = parsed_line[25]
+  ay = parsed_line[26]
+  az = parsed_line[27]
+
+  vx0 = parsed_line[22]
+  vy0 = parsed_line[23]
+  vz0 = parsed_line[24]
+
+  px = parsed_line[17]
+  pz = parsed_line[18]
+
+  conf = parsed_line[33]
+
+  data = tf.stack([ax, ay, az, vx0, vy0, vz0, break_y, break_angle, break_length, conf])
+  return label, data
 
 
 def load_data(filename, batchsize=100):
@@ -78,8 +90,19 @@ def decode_csv_est(line):
   break_angle = parsed_line[29]
   break_length = parsed_line[30]
 
-  cols = ['break_y', 'break_angle', 'break_length']
-  features = dict(zip(cols, [break_y, break_angle, break_length]))
+  ax = parsed_line[25]
+  ay = parsed_line[26]
+  az = parsed_line[27]
+
+  vx0 = parsed_line[22]
+  vy0 = parsed_line[23]
+  vz0 = parsed_line[24]
+
+  px = parsed_line[17]
+  pz = parsed_line[18]
+
+  cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+  features = dict(zip(cols, [vx0, vy0, vz0, ax, ay, az, break_y, break_angle, break_length]))
 
   return features, pitch_code
 
@@ -88,5 +111,12 @@ def csv_input_fn(filename, batchsize=100):
   dataset = tf.data.TextLineDataset([filename]).skip(1)
   dataset = dataset.map(decode_csv_est)
   dataset = dataset.shuffle(1000).repeat().batch(batchsize)
+  return dataset
+
+
+def csv_eval_fn(filename, batchsize=100):
+  dataset = tf.data.TextLineDataset([filename]).skip(1)
+  dataset = dataset.map(decode_csv_est)
+  dataset = dataset.batch(batchsize)
   return dataset
 
