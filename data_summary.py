@@ -8,7 +8,7 @@ from pitch_data import load_data,NUM_PITCH_CLASSES
 def main(argv):
   tfe.enable_eager_execution()
 
-  dataset = load_data('training_data.csv', 1)
+  dataset = load_data('2017_pitches.csv', 1)
 
   # TODO(kreeger): This can be vectorized.
   buckets = []

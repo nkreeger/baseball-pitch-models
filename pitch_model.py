@@ -4,7 +4,7 @@ import time
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data,NUM_DATA_INPUTS,NUM_PITCH_CLASSES,csv_input_fn,csv_eval_fn
+from pitch_data import load_data,NUM_PITCH_CLASSES,csv_input_fn,csv_eval_fn
 
 class Model(tf.keras.Model):
 
@@ -92,15 +92,15 @@ def run_eager(argv):
 
 def main(argv):
   cols = []
-  cols.append(tf.feature_column.numeric_column(key='a'))
-  cols.append(tf.feature_column.numeric_column(key='b'))
-  cols.append(tf.feature_column.numeric_column(key='c'))
-  cols.append(tf.feature_column.numeric_column(key='d'))
-  cols.append(tf.feature_column.numeric_column(key='e'))
-  cols.append(tf.feature_column.numeric_column(key='f'))
-  cols.append(tf.feature_column.numeric_column(key='g'))
-  cols.append(tf.feature_column.numeric_column(key='h'))
-  cols.append(tf.feature_column.numeric_column(key='i'))
+  # cols.append(tf.feature_column.numeric_column(key='vx0'))
+  # cols.append(tf.feature_column.numeric_column(key='vy0'))
+  # cols.append(tf.feature_column.numeric_column(key='vz0'))
+  # cols.append(tf.feature_column.numeric_column(key='ax'))
+  # cols.append(tf.feature_column.numeric_column(key='ay'))
+  # cols.append(tf.feature_column.numeric_column(key='az'))
+  cols.append(tf.feature_column.numeric_column(key='break_y'))
+  cols.append(tf.feature_column.numeric_column(key='break_angle'))
+  cols.append(tf.feature_column.numeric_column(key='break_length'))
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
@@ -110,11 +110,11 @@ def main(argv):
   for _ in range(100):
     print('------ TRAIN ----------')
     classifier.train(
-            input_fn=lambda:csv_input_fn('training_data.csv', batchsize=100), steps=1000)
+            input_fn=lambda:csv_input_fn('2015_pitches.csv', batchsize=100), steps=1000)
 
     print('------ EVALUATE ----------')
     eval_result = classifier.evaluate(
-            input_fn=lambda:csv_eval_fn('test_data.csv'))
+            input_fn=lambda:csv_eval_fn('2014_pitches.csv'))
 
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
