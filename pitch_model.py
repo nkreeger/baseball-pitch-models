@@ -104,11 +104,11 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[125, 100, 75, 50, 25],
+          hidden_units=[150, 125, 100, 75, 50, 25],
           n_classes=11,
           model_dir='models')
 
-  for _ in range(100):
+  for _ in range(1000):
     print('------ TRAIN ----------: {}'.format(_))
     classifier.train(
             input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100), steps=1000)
