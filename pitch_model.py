@@ -119,21 +119,22 @@ def main(argv):
 
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
-  # FF / 0.924
-  predictions = classifier.predict(input_fn=pitch_data.test_pitch)
-  template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
+    if _ % 10 == 0:
+      # FF / 0.924
+      predictions = classifier.predict(input_fn=pitch_data.test_pitch)
+      template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
 
-  print('\n')
-  expected = ['FF']
-  for pred_dict, expec in zip(predictions, expected):
-    class_id = pred_dict['class_ids'][0]
-    probability = pred_dict['probabilities'][class_id]
-    print(template.format(class_id, 100 * probability, expec))
+      print('\n')
+      expected = ['FF', 'SL', 'FT', 'CH', 'KN', 'CU', 'EP', 'FS', 'KC', 'SI', 'FC']
+      for pred_dict, expec in zip(predictions, expected):
+        class_id = pred_dict['class_ids'][0]
+        probability = pred_dict['probabilities'][class_id]
+        print(template.format(pitch_data.PITCH_CLASSES[class_id], 100 * probability, expec))
 
-  print('\n')
+      print('\n')
 
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
-  run_eager(argv=sys.argv)
-  # tf.app.run(main)
+  # run_eager(argv=sys.argv)
+  tf.app.run(main)
