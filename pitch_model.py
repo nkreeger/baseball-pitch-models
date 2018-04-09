@@ -4,7 +4,8 @@ import time
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
 
-from pitch_data import load_data,NUM_PITCH_CLASSES,csv_input_fn,csv_eval_fn
+import pitch_data
+
 
 class Model(tf.keras.Model):
 
@@ -20,7 +21,6 @@ class Model(tf.keras.Model):
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
-    # self.dropout = tf.layers.Dropout(0.5)
     y = self.dense2(y)
     y = self.dense3(y)
     return y
@@ -71,8 +71,8 @@ def run_eager(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  train_dataset = load_data('training_data.csv', 50)
-  test_dataset = load_data('test_data.csv', 50)
+  train_dataset = pitch_data.load_data('training_data.csv', 50)
+  test_dataset = pitch_data.load_data('test_data.csv', 50)
   test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
@@ -91,35 +91,43 @@ def run_eager(argv):
 
 
 def main(argv):
+  col_names = pitch_data.estimator_cols()
   cols = []
-  # cols.append(tf.feature_column.numeric_column(key='vx0'))
-  # cols.append(tf.feature_column.numeric_column(key='vy0'))
-  # cols.append(tf.feature_column.numeric_column(key='vz0'))
-  # cols.append(tf.feature_column.numeric_column(key='ax'))
-  # cols.append(tf.feature_column.numeric_column(key='ay'))
-  # cols.append(tf.feature_column.numeric_column(key='az'))
-  cols.append(tf.feature_column.numeric_column(key='break_y'))
-  cols.append(tf.feature_column.numeric_column(key='break_angle'))
-  cols.append(tf.feature_column.numeric_column(key='break_length'))
+  for name in col_names:
+    cols.append(tf.feature_column.numeric_column(key=name))
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[40, 20],
-          n_classes=NUM_PITCH_CLASSES)
+          hidden_units=[22, 11],
+          n_classes=11,
+          model_dir='models')
 
-  for _ in range(100):
+  for _ in range(5):
     print('------ TRAIN ----------')
     classifier.train(
-            input_fn=lambda:csv_input_fn('2015_pitches.csv', batchsize=100), steps=1000)
+            input_fn=lambda:pitch_data.csv_input_fn('2015_pitches.csv', batchsize=100), steps=1000)
 
     print('------ EVALUATE ----------')
     eval_result = classifier.evaluate(
-            input_fn=lambda:csv_eval_fn('2014_pitches.csv'))
+            input_fn=lambda:pitch_data.csv_eval_fn('test_data.csv'))
 
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+
+  # FF / 0.924
+  predictions = classifier.predict(input_fn=pitch_data.test_pitch)
+  template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
+
+  print('\n')
+  expected = ['FF']
+  for pred_dict, expec in zip(predictions, expected):
+    class_id = pred_dict['class_ids'][0]
+    probability = pred_dict['probabilities'][class_id]
+    print(template.format(class_id, 100 * probability, expec))
+
+  print('\n')
 
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
   # run_eager(argv=sys.argv)
-  tf.app.run(main(argv=sys.argv))
+  tf.app.run(main)

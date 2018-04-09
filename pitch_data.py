@@ -38,7 +38,7 @@ csv_column_types = [
 ]
 
 NUM_PITCH_CLASSES = 11
-
+PITCH_CLASSES = ['FF', 'SL', 'FT', 'CH', 'KN', 'CU', 'EP', 'FS', 'KC', 'SI', 'FC']
 
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
@@ -63,7 +63,7 @@ def decode_csv(line):
 
   conf = parsed_line[28]
 
-  data = tf.stack([ax, ay, az, vx0, vy0, vz0, break_y, break_angle, break_length, conf])
+  data = tf.stack([ax, ay, az, vx0, vy0, vz0])
   return label, data
 
 
@@ -73,6 +73,19 @@ def load_data(filename, batchsize=100):
   dataset = dataset.map(decode_csv)
   dataset = dataset.batch(batchsize)
   return dataset
+
+
+def estimator_cols():
+  return [
+      'vx0',
+      'vy0',
+      'vz0',
+      'ax',
+      'ay',
+      'az',
+      'px',
+      'pz'
+  ]
 
 
 def decode_csv_est(line):
@@ -97,27 +110,15 @@ def decode_csv_est(line):
 
   conf = parsed_line[28]
 
-  cols = [
-      # 'vx0',
-      # 'vy0',
-      # 'vz0',
-      # 'ax',
-      # 'ay',
-      # 'az',
-      'break_y',
-      'break_angle',
-      'break_length'
-  ]
-  features = dict(zip(cols, [
-      # vx0,
-      # vy0,
-      # vz0,
-      # ax,
-      # ay,
-      # az,
-      break_y,
-      break_angle,
-      break_length
+  features = dict(zip(estimator_cols(), [
+      vx0,
+      vy0,
+      vz0,
+      ax,
+      ay,
+      az,
+      px,
+      pz
       ]))
 
   return features, pitch_code
@@ -136,3 +137,29 @@ def csv_eval_fn(filename, batchsize=100):
   dataset = dataset.batch(batchsize)
   return dataset
 
+
+def test_pitch():
+  # FT / 0.943
+  px = -1.496,
+  pz = 2.793,
+  vx0 = 3.183,
+  vy0 = -135.149,
+  vz0 = -2.005,
+  ax = -16.296,
+  ay = 29.576,
+  az = -22.414,
+  # break_y = 23.8,
+  # break_angle = 34.4,
+  # break_length = 6.1,
+
+  features = dict(zip(estimator_cols(), [
+      vx0,
+      vy0,
+      vz0,
+      ax,
+      ay,
+      az,
+      px,
+      pz]))
+
+  return tf.data.Dataset.from_tensors(features)
