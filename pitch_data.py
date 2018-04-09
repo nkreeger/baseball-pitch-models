@@ -46,10 +46,6 @@ def decode_csv(line):
   pitch_code = parsed_line[27]
   label = tf.one_hot(pitch_code, NUM_PITCH_CLASSES)
 
-  break_y = parsed_line[23]
-  break_angle = parsed_line[24]
-  break_length = parsed_line[25]
-
   ax = parsed_line[20]
   ay = parsed_line[21]
   az = parsed_line[22]
@@ -61,9 +57,7 @@ def decode_csv(line):
   px = parsed_line[12]
   pz = parsed_line[13]
 
-  conf = parsed_line[28]
-
-  data = tf.stack([ax, ay, az, vx0, vy0, vz0])
+  data = tf.stack([ax, ay, az, vx0, vy0, vz0, px, pz])
   return label, data
 
 
@@ -82,7 +76,9 @@ def estimator_cols():
       'vz0',
       'ax',
       'ay',
-      'az'
+      'az',
+      'px',
+      'pz'
   ]
 
 
@@ -117,7 +113,10 @@ def decode_csv_est(line):
       vz0,
       ax,
       ay,
-      az]))
+      az,
+      px,
+      pz
+      ]))
 
   return features, pitch_code
 
@@ -158,6 +157,8 @@ def test_pitch():
       vz0,
       ax,
       ay,
-      az]))
+      az,
+      px,
+      pz]))
 
   return tf.data.Dataset.from_tensors(features)

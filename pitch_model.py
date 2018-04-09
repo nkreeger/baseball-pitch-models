@@ -14,15 +14,21 @@ class Model(tf.keras.Model):
 
     initializer = tf.initializers.random_uniform(0.1, 11)
 
-    self.dense1 = tf.layers.Dense(50, activation=tf.nn.relu)
-    self.dense2 = tf.layers.Dense(25, activation=tf.nn.relu)
-    self.dense3 = tf.layers.Dense(11, activation=tf.nn.relu)
+    self.dense1 = tf.layers.Dense(125, activation=tf.nn.relu)
+    self.dense2 = tf.layers.Dense(100, activation=tf.nn.relu)
+    self.dense3 = tf.layers.Dense(75, activation=tf.nn.relu)
+    self.dense4 = tf.layers.Dense(50, activation=tf.nn.relu)
+    self.dense5 = tf.layers.Dense(25, activation=tf.nn.relu)
+    self.dense6 = tf.layers.Dense(11, activation=None)
     self.dropout = tf.layers.Dropout(0.5)
 
   def __call__(self, inputs, training):
     y = self.dense1(inputs)
     y = self.dense2(y)
     y = self.dense3(y)
+    y = self.dense4(y)
+    y = self.dense5(y)
+    y = self.dense6(y)
     return y
 
 
@@ -71,19 +77,19 @@ def run_eager(argv):
   tfe.enable_eager_execution()
 
   model = Model()
-  train_dataset = pitch_data.load_data('training_data.csv', 50)
-  test_dataset = pitch_data.load_data('test_data.csv', 50)
+  train_dataset = pitch_data.load_data('training_data.csv', 100)
+  test_dataset = pitch_data.load_data('test_data.csv', 100)
   test_labels, test_data = tfe.Iterator(test_dataset).next()
 
   step_counter = tf.train.get_or_create_global_step()
-  optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+  optimizer = tf.train.AdagradOptimizer(learning_rate=0.001)
   # optimizer = tf.train.MomentumOptimizer(0.01, 0.5)
 
   for _ in range(100):
     start = time.time()
     # TODO(kreeger): Gate this.
-    # train_same_batch(model, optimizer, test_labels, test_data, step_counter)
-    train(model, optimizer, train_dataset, step_counter)
+    train_same_batch(model, optimizer, test_labels, test_data, step_counter)
+    # train(model, optimizer, train_dataset, step_counter)
     end = time.time()
     print(' ** Train time for epoch #%d (%d total steps): %f' % (_ + 1, step_counter.numpy(), end - start))
     test(model, test_labels, test_data)
@@ -98,7 +104,7 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[100, 75, 50, 25],
+          hidden_units=[125, 100, 75, 50, 25],
           n_classes=11,
           model_dir='models')
 
@@ -129,5 +135,5 @@ def main(argv):
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
-  # run_eager(argv=sys.argv)
-  tf.app.run(main)
+  run_eager(argv=sys.argv)
+  # tf.app.run(main)
