@@ -1,7 +1,7 @@
 #!/bin/sh
 
-JUNE_2017_DATA="https://storage.googleapis.com/mlb-pitch-data/june_2017_pitches.csv.gz"
-JULY_2017_DATA="https://storage.googleapis.com/mlb-pitch-data/july_2017_pitches.csv.gz"
+TRAINING_DATA="https://storage.googleapis.com/mlb-pitch-data/training_data.csv.gz"
+TEST_DATA="https://storage.googleapis.com/mlb-pitch-data/test_data.csv.gz"
 
-curl -L $JUNE_2017_DATA | gunzip > training_data.csv
-curl -L $JULY_2017_DATA | gunzip > test_data.csv
+curl -L $TRAINING_DATA | gunzip > training_data.csv
+curl -L $TEST_DATA | gunzip > test_data.csv
