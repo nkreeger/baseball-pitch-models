@@ -82,9 +82,7 @@ def estimator_cols():
       'vz0',
       'ax',
       'ay',
-      'az',
-      'px',
-      'pz'
+      'az'
   ]
 
 
@@ -108,6 +106,9 @@ def decode_csv_est(line):
   px = parsed_line[12]
   pz = parsed_line[13]
 
+  start_speed = parsed_line[6]
+  end_speed = parsed_line[7]
+
   conf = parsed_line[28]
 
   features = dict(zip(estimator_cols(), [
@@ -116,10 +117,7 @@ def decode_csv_est(line):
       vz0,
       ax,
       ay,
-      az,
-      px,
-      pz
-      ]))
+      az]))
 
   return features, pitch_code
 
@@ -127,14 +125,14 @@ def decode_csv_est(line):
 def csv_input_fn(filename, batchsize=100):
   dataset = tf.data.TextLineDataset([filename]).skip(1)
   dataset = dataset.map(decode_csv_est)
-  dataset = dataset.shuffle(1000).repeat().batch(batchsize)
+  dataset = dataset.shuffle(25000).repeat().batch(batchsize)
   return dataset
 
 
 def csv_eval_fn(filename, batchsize=100):
   dataset = tf.data.TextLineDataset([filename]).skip(1)
   dataset = dataset.map(decode_csv_est)
-  dataset = dataset.batch(batchsize)
+  dataset = dataset.shuffle(1000).batch(batchsize)
   return dataset
 
 
@@ -148,9 +146,11 @@ def test_pitch():
   ax = -16.296,
   ay = 29.576,
   az = -22.414,
-  # break_y = 23.8,
-  # break_angle = 34.4,
-  # break_length = 6.1,
+  break_y = 23.8,
+  break_angle = 34.4,
+  break_length = 6.1,
+  start_speed = 89.1 # hack
+  end_speed = 87.3 # hack
 
   features = dict(zip(estimator_cols(), [
       vx0,
@@ -158,8 +158,6 @@ def test_pitch():
       vz0,
       ax,
       ay,
-      az,
-      px,
-      pz]))
+      az]))
 
   return tf.data.Dataset.from_tensors(features)
