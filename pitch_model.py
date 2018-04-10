@@ -104,14 +104,15 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[150, 125, 100, 75, 50, 25],
+          hidden_units=[100, 75, 50, 25],
           n_classes=11,
           model_dir='models')
 
   for _ in range(1000):
     print('------ TRAIN ----------: {}'.format(_))
     classifier.train(
-            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100), steps=1000)
+            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=25),
+            steps=2000)
 
     print('------ EVALUATE ----------: {}'.format(_))
     eval_result = classifier.evaluate(
