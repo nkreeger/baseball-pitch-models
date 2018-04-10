@@ -15,11 +15,9 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[300, 200, 100, 75, 50, 25],
+          hidden_units=[200, 150, 100, 75, 50, 25],
           n_classes=11,
-          optimizer=tf.train.ProximalAdagradOptimizer(
-            learning_rate=0.1,
-            l1_regularization_strength=0.001),
+          optimizer=tf.train.AdadeltaOptimizer(),
           model_dir='models')
 
   for _ in range(1000):
