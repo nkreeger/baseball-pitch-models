@@ -15,16 +15,18 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[250, 125, 75, 30],
+          hidden_units=[200, 150, 100, 75, 50, 25],
           n_classes=11,
-          optimizer=tf.train.AdagradOptimizer(0.1),
+          optimizer=tf.train.ProximalAdagradOptimizer(
+            learning_rate=0.1,
+            l1_regularization_strength=0.001),
           model_dir='models')
 
   for _ in range(1000):
     print('------ TRAIN ----------: {}'.format(_))
     classifier.train(
-            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=200),
-            steps=1000)
+            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
+            steps=500)
 
     print('------ EVALUATE ----------: {}'.format(_))
     eval_result = classifier.evaluate(
