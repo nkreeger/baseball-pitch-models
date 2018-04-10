@@ -37,8 +37,22 @@ csv_column_types = [
   [],   # spin_rate (32)
 ]
 
-NUM_PITCH_CLASSES = 11
-PITCH_CLASSES = ['FF', 'SL', 'FT', 'CH', 'KN', 'CU', 'EP', 'FS', 'KC', 'SI', 'FC']
+NUM_PITCH_CLASSES = 12
+
+PITCH_CLASSES = [
+  'Fastball',
+  'Fastball (two-seam)',
+  'Fastball (four-seam)',
+  'Fastball (sinker)',
+  'Fastball (split-finger)',
+  'Fastball (cutter)',
+  'Slider',
+  'Changeup',
+  'Curveball',
+  'Knuckle-curve',
+  'Knuckleball',
+  'Eephus']
+
 
 def decode_csv(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
@@ -77,8 +91,8 @@ def estimator_cols():
       'ax',
       'ay',
       'az',
-      'px',
-      'pz'
+      # 'px',
+      # 'pz'
   ]
 
 
@@ -114,8 +128,8 @@ def decode_csv_est(line):
       ax,
       ay,
       az,
-      px,
-      pz
+      # px,
+      # pz
       ]))
 
   return features, pitch_code

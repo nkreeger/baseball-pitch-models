@@ -15,9 +15,10 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[200, 150, 100, 75, 50, 25],
-          n_classes=11,
-          optimizer=tf.train.AdadeltaOptimizer(),
+          hidden_units=[200, 125, 75, 25],
+          n_classes=12,
+          optimizer=tf.train.AdamOptimizer(),
+          dropout=0.1,
           model_dir='models')
 
   for _ in range(1000):
@@ -38,7 +39,19 @@ def main(argv):
       template = ('\nPrediction is "{}" ({:.1f}%), expected "{}"')
 
       print('\n')
-      expected = ['FF', 'SL', 'FT', 'CH', 'KN', 'CU', 'EP', 'FS', 'KC', 'SI', 'FC']
+      expected = [
+        'Fastball',
+        'Fastball (two-seam)',
+        'Fastball (four-seam)',
+        'Fastball (sinker)',
+        'Fastball (split-finger)',
+        'Fastball (cutter)',
+        'Slider',
+        'Changeup',
+        'Curveball',
+        'Knuckle-curve',
+        'Knuckleball',
+        'Eephus']
       for pred_dict, expec in zip(predictions, expected):
         class_id = pred_dict['class_ids'][0]
         probability = pred_dict['probabilities'][class_id]
