@@ -25,7 +25,7 @@ def main(argv):
     print('------ TRAIN ----------: {}'.format(_))
     classifier.train(
             input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
-            steps=1000)
+            steps=500)
 
     print('------ EVALUATE ----------: {}'.format(_))
     eval_result = classifier.evaluate(
