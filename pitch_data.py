@@ -37,13 +37,12 @@ csv_column_types = [
   [],   # spin_rate (32)
 ]
 
-NUM_PITCH_CLASSES = 11
+NUM_PITCH_CLASSES = 10
 
 PITCH_CLASSES = [
   'Fastball (two-seam)',
   'Fastball (four-seam)',
   'Fastball (sinker)',
-  'Fastball (split-finger)',
   'Fastball (cutter)',
   'Slider',
   'Changeup',
@@ -90,8 +89,8 @@ def estimator_cols():
       'ax',
       'ay',
       'az',
-      # 'px',
-      # 'pz'
+      'px',
+      'pz'
   ]
 
 
@@ -127,8 +126,8 @@ def decode_csv_est(line):
       ax,
       ay,
       az,
-      # px,
-      # pz
+      px,
+      pz
       ]))
 
   return features, pitch_code
