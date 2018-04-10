@@ -99,8 +99,8 @@ def decode_csv_est(line):
   vy0 = parsed_line[18]
   vz0 = parsed_line[19]
 
-  # px = parsed_line[12]
-  # pz = parsed_line[13]
+  px = parsed_line[12]
+  pz = parsed_line[13]
 
   start_speed = parsed_line[6]
   end_speed = parsed_line[7]
