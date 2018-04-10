@@ -15,7 +15,7 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[200, 150, 100, 75, 50, 25],
+          hidden_units=[300, 200, 100, 75, 50, 25],
           n_classes=11,
           optimizer=tf.train.ProximalAdagradOptimizer(
             learning_rate=0.1,
@@ -26,7 +26,7 @@ def main(argv):
     print('------ TRAIN ----------: {}'.format(_))
     classifier.train(
             input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
-            steps=500)
+            steps=1000)
 
     print('------ EVALUATE ----------: {}'.format(_))
     eval_result = classifier.evaluate(
