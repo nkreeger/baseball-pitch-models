@@ -15,7 +15,7 @@ def main(argv):
 
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
-          hidden_units=[500, 250, 125, 75, 30],
+          hidden_units=[250, 125, 75, 30],
           n_classes=11,
           optimizer=tf.train.AdagradOptimizer(0.1),
           model_dir='models')
