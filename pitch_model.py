@@ -16,7 +16,7 @@ def main(argv):
   classifier = tf.estimator.DNNClassifier(
           feature_columns=cols,
           hidden_units=[250, 125, 75, 25],
-          n_classes=11,
+          n_classes=10,
           optimizer=tf.train.AdamOptimizer(),
           dropout=0.1,
           model_dir='models')
@@ -43,7 +43,6 @@ def main(argv):
         'Fastball (two-seam)',
         'Fastball (four-seam)',
         'Fastball (sinker)',
-        'Fastball (split-finger)',
         'Fastball (cutter)',
         'Slider',
         'Changeup',
