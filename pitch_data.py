@@ -65,31 +65,42 @@ AZ_MIN = -52.756
 AZ_MAX = 8.645
 
 
+def col_keys():
+  return [
+    'vx0',
+    'vy0',
+    'vz0',
+    'ax',
+    'ay',
+    'az',
+  ]
+
+
 def estimator_cols():
   return [
     tf.feature_column.numeric_column(
       key='vx0',
-      normalizer_fn=lambda x: (x - VX0_MIN) / (VX0_MAX - VX0_MIN))
+      normalizer_fn=lambda x: ((x - VX0_MIN) / (VX0_MAX - VX0_MIN))),
 
     tf.feature_column.numeric_column(
-      key='vy0'
-      normalizer_fn=lambda x: (x - VY0_MIN) / (VY0_MAX - VY0_MIN))
+      key='vy0',
+      normalizer_fn=lambda x: ((x - VY0_MIN) / (VY0_MAX - VY0_MIN))),
 
     tf.feature_column.numeric_column(
       key='vz0',
-      normalizer_fn=lambda x: (x - VZ0_MIN) / (VZ0_MAX - VZ0_MIN))
+      normalizer_fn=lambda x: ((x - VZ0_MIN) / (VZ0_MAX - VZ0_MIN))),
 
     tf.feature_column.numeric_column(
       key='ax',
-      normalizer_fn=lambda x: (x - AX_MIN) / (AX_MAX - AX_MIN))
+      normalizer_fn=lambda x: ((x - AX_MIN) / (AX_MAX - AX_MIN))),
 
     tf.feature_column.numeric_column(
       key='ay',
-      normalizer_fn=lambda x: (x - AY_MIN) / (AY_MAX - AY_MIN))
+      normalizer_fn=lambda x: ((x - AY_MIN) / (AY_MAX - AY_MIN))),
 
     tf.feature_column.numeric_column(
       key='az',
-      normalizer_fn=lambda x: (x - AZ_MIN) / (AZ_MAX - AZ_MIN))
+      normalizer_fn=lambda x: ((x - AZ_MIN) / (AZ_MAX - AZ_MIN))),
   ]
 
 
@@ -118,7 +129,7 @@ def decode_csv_est(line):
 
   conf = parsed_line[28]
 
-  features = dict(zip(estimator_cols(), [
+  features = dict(zip(col_keys(), [
       vx0,
       vy0,
       vz0,
@@ -159,5 +170,5 @@ def test_pitch():
     [1.158,-91.701,1.385,-1.263,13.798,-30.613],
   ]
 
-  features = dict(zip(estimator_cols(), samples))
+  features = dict(zip(col_keys(), samples))
   return tf.data.Dataset.from_tensors(features)
