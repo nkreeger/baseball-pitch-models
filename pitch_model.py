@@ -35,7 +35,7 @@ def custom_classifier(features, labels, mode, params):
     # Create training op.
     assert mode == tf.estimator.ModeKeys.TRAIN
 
-    optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+    optimizer = tf.train.AdagradOptimizer(learning_rate=0.001)
     train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
     return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
 
@@ -47,10 +47,17 @@ def model(model_dir):
     print('adding : {}'.format(name))
     cols.append(tf.feature_column.numeric_column(key=name))
 
-  return tf.estimator.Estimator(
-    model_fn=custom_classifier,
-    params={
-      'feature_columns': cols,
-      'hidden_units': [250, 125, 75, 25],
-      'n_classes': 10
-    })
+  return tf.estimator.DNNClassifier(
+          feature_columns=cols,
+          hidden_units=[250, 125, 75, 25],
+          n_classes=10,
+          optimizer=tf.train.AdamOptimizer(),
+          dropout=0.1,
+          model_dir='models')
+  # return tf.estimator.Estimator(
+  #   model_fn=custom_classifier,
+  #   params={
+  #     'feature_columns': cols,
+  #     'hidden_units': [250, 125, 75, 25],
+  #     'n_classes': 10
+  #   })
