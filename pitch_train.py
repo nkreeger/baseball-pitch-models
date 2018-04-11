@@ -11,11 +11,11 @@ def main(argv):
   for idx in range(1000):
     print('------ TRAIN ----------: {}'.format(idx))
     model.train(
-            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=75),
+            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
             steps=1000)
 
     eval_result = model.evaluate(
-            input_fn=lambda:pitch_data.csv_eval_fn('test_data.csv', batchsize=10))
+            input_fn=lambda:pitch_data.csv_eval_fn('test_data.csv', batchsize=100))
 
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
