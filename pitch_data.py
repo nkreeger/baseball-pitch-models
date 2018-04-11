@@ -51,45 +51,45 @@ PITCH_CLASSES = [
   'Eephus']
 
 
-def decode_csv(line):
-  parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
-
-  pitch_code = parsed_line[27]
-  label = tf.one_hot(pitch_code, NUM_PITCH_CLASSES)
-
-  ax = parsed_line[20]
-  ay = parsed_line[21]
-  az = parsed_line[22]
-
-  vx0 = parsed_line[17]
-  vy0 = parsed_line[18]
-  vz0 = parsed_line[19]
-
-  px = parsed_line[12]
-  pz = parsed_line[13]
-
-  data = tf.stack([ax, ay, az, vx0, vy0, vz0, px, pz])
-  return label, data
-
-
-def load_data(filename, batchsize=100):
-  dataset = tf.data.TextLineDataset([filename])
-  dataset = dataset.skip(1)
-  dataset = dataset.map(decode_csv)
-  dataset = dataset.batch(batchsize)
-  return dataset
+VX0_MIN = -20.854
+VX0_MAX = 19.447
+VY0_MIN = -152.477
+VY0_MAX = -65.33
+VZ0_MIN = -20.64
+VZ0_MAX = 17.856
+AX_MIN = -59.290089729458
+AX_MAX = 40.181
+AY_MIN = 6.696
+AY_MAX = 49.18
+AZ_MIN = -52.756
+AZ_MAX = 8.645
 
 
 def estimator_cols():
   return [
-      'vx0',
-      'vy0',
-      'vz0',
-      'ax',
-      'ay',
-      'az',
-      'px',
-      'pz',
+    tf.feature_column.numeric_column(
+      key='vx0',
+      normalizer_fn=lambda x: (x - VX0_MIN) / (VX0_MAX - VX0_MIN))
+
+    tf.feature_column.numeric_column(
+      key='vy0'
+      normalizer_fn=lambda x: (x - VY0_MIN) / (VY0_MAX - VY0_MIN))
+
+    tf.feature_column.numeric_column(
+      key='vz0',
+      normalizer_fn=lambda x: (x - VZ0_MIN) / (VZ0_MAX - VZ0_MIN))
+
+    tf.feature_column.numeric_column(
+      key='ax',
+      normalizer_fn=lambda x: (x - AX_MIN) / (AX_MAX - AX_MIN))
+
+    tf.feature_column.numeric_column(
+      key='ay',
+      normalizer_fn=lambda x: (x - AY_MIN) / (AY_MAX - AY_MIN))
+
+    tf.feature_column.numeric_column(
+      key='az',
+      normalizer_fn=lambda x: (x - AZ_MIN) / (AZ_MAX - AZ_MIN))
   ]
 
 
@@ -125,8 +125,6 @@ def decode_csv_est(line):
       ax,
       ay,
       az,
-      px,
-      pz
       ]))
 
   return features, pitch_code
@@ -147,17 +145,18 @@ def csv_eval_fn(filename, batchsize=100):
 
 
 def test_pitch():
+  # TODO - does this need to be normalized?
   samples = [
-    [3.183,-135.149,-2.005,-16.296,29.576,-22.414,-1.496,2.793],
-    [-9.706,-135.569,-4.866,6.548,28.308,-14.883,-0.613,2.997],
-    [-3.94,-132.87,-1.45,18.93,30.41,-31.62,1.85,3.38],
-    [7.254,-133.116,-6.822,2.01,30.686,-8.24,0.392,3.364],
-    [-9.375,-115.324,-2.395,-1.281,22.358,-39.066,-1.709,1.136],
-    [5.09,-123.243,-6.224,-19.159,28.283,-25.269,-1.159,0.815],
-    [0.664,-117.548,1.539,3.957,24.355,-40.877,-1.254,3.518],
-    [3.902,-117.524,1.619,7.688,24.31,-40.42,0.401,2.938],
-    [3.857,-116.851,-0.632,-1.749,22.639,-34.27,0.949,2.216],
-    [1.158,-91.701,1.385,-1.263,13.798,-30.613,-0.105,2.625],
+    [3.183,-135.149,-2.005,-16.296,29.576,-22.414],
+    [-9.706,-135.569,-4.866,6.548,28.308,-14.883],
+    [-3.94,-132.87,-1.45,18.93,30.41,-31.62],
+    [7.254,-133.116,-6.822,2.01,30.686,-8.24],
+    [-9.375,-115.324,-2.395,-1.281,22.358,-39.066],
+    [5.09,-123.243,-6.224,-19.159,28.283,-25.269],
+    [0.664,-117.548,1.539,3.957,24.355,-40.877],
+    [3.902,-117.524,1.619,7.688,24.31,-40.42],
+    [3.857,-116.851,-0.632,-1.749,22.639,-34.27],
+    [1.158,-91.701,1.385,-1.263,13.798,-30.613],
   ]
 
   features = dict(zip(estimator_cols(), samples))

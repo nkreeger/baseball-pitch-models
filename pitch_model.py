@@ -41,19 +41,14 @@ def custom_classifier(features, labels, mode, params):
 
 
 def model(model_dir):
-  col_names = pitch_data.estimator_cols()
-  cols = []
-  for name in col_names:
-    print('adding : {}'.format(name))
-    cols.append(tf.feature_column.numeric_column(key=name))
-
   return tf.estimator.DNNClassifier(
-          feature_columns=cols,
-          hidden_units=[250, 125, 75, 25],
+          feature_columns=pitch_data.estimator_cols(),
+          hidden_units=[50, 50],
           n_classes=10,
           optimizer=tf.train.AdamOptimizer(),
           dropout=0.1,
           model_dir='models')
+
   # return tf.estimator.Estimator(
   #   model_fn=custom_classifier,
   #   params={
