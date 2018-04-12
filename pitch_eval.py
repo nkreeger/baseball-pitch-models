@@ -5,7 +5,7 @@ import pitch_model
 
 
 def print_eval(model):
-  predictions = model.predict(input_fn=pitch_data.test_pitch)
+  predictions = model.predict(input_fn=lambda:pitch_data.test_pitch(100))
 
   template = ('\n** Prediction is "{}" ({:.1f}%), expected "{}"')
 
@@ -28,7 +28,7 @@ def print_eval(model):
 
 
 def main(argv):
-  print_eval(pitch_model.model('models_eval'))
+  print_eval(pitch_model.model('models'))
 
 
 if __name__ == '__main__':
