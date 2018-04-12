@@ -47,6 +47,7 @@ PITCH_CLASSES = [
   'Changeup',
   'Curveball']
 
+
 VX0_MIN = -23.161
 VX0_MAX = 19.498
 VY0_MIN = -150.782746752869
@@ -59,6 +60,14 @@ AY_MIN = 3.46
 AY_MAX = 53.299
 AZ_MIN = -61.86
 AZ_MAX = 23.78
+PX_MIN = -8.764
+PX_MAX = 12.9529095060724
+PZ_MIN = -4.79923819378
+PZ_MAX = 12.488540954706
+X0_MIN = -5.87467296544683
+X0_MAX = 9.717
+Z0_MIN = -0.0160436028988832
+Z0_MAX = 9.7475265071709
 
 def col_keys():
   return [
@@ -68,6 +77,10 @@ def col_keys():
     'ax',
     'ay',
     'az',
+    'px',
+    'pz',
+    'x0',
+    'z0'
   ]
 
 
@@ -96,6 +109,22 @@ def estimator_cols():
     tf.feature_column.numeric_column(
       key='az',
       normalizer_fn=lambda x: ((x - AZ_MIN) / (AZ_MAX - AZ_MIN))),
+
+    tf.feature_column.numeric_column(
+      key='px',
+      normalizer_fn=lambda x: ((x - PX_MIN) / (PX_MAX - PX_MIN))),
+
+    tf.feature_column.numeric_column(
+      key='pz',
+      normalizer_fn=lambda x: ((x - PZ_MIN) / (PZ_MAX - PZ_MIN))),
+
+    tf.feature_column.numeric_column(
+      key='x0',
+      normalizer_fn=lambda x: ((x - X0_MIN) / (X0_MAX - X0_MIN))),
+
+    tf.feature_column.numeric_column(
+      key='z0',
+      normalizer_fn=lambda x: ((x - Z0_MIN) / (Z0_MAX - Z0_MIN))),
   ]
 
 
@@ -122,6 +151,9 @@ def decode_csv_est(line):
   start_speed = parsed_line[6]
   end_speed = parsed_line[7]
 
+  x0 = parsed_line[14]
+  z0 = parsed_line[16]
+
   conf = parsed_line[28]
 
   features = dict(zip(col_keys(), [
@@ -131,6 +163,10 @@ def decode_csv_est(line):
       ax,
       ay,
       az,
+      px,
+      pz,
+      x0,
+      z0
       ]))
 
   return features, pitch_code
@@ -152,13 +188,13 @@ def csv_eval_fn(filename, batchsize=100):
 
 def test_pitch():
   samples = [
-    [2.001,-134.272,-1.451,-19.153,30.434,-24.366],
-    [-6.409,-136.065,-3.995,7.665,34.685,-11.96],
-    [-8.704,-132.38,-2.685,17.411,26.452,-22.438],
-    [4.243,-127.708,-6.167,2.58,24.596,-22.981],
-    [1.331,-123.126,-5.872,3.406,22.882,-29.909],
-    [-8.545,-121.495,-3.271,16.668,25.539,-25.448],
-    [-6.309,-110.409,0.325,-10.28,21.774,-34.111],
+    [2.001,-134.272,-1.451,-19.153,30.434,-24.366,-1.93,3.192,-1.318,5.481],
+    [-6.409,-136.065,-3.995,7.665,34.685,-11.96,0.416,2.963,2.28,5.302],
+    [-8.704,-132.38,-2.685,17.411,26.452,-22.438,0.2,2.643,2.253,5.301],
+    [4.243,-127.708,-6.167,2.58,24.596,-22.981,0.687,1.97,-1.193,6.206],
+    [1.331,-123.126,-5.872,3.406,22.882,-29.909,-0.133,1.1,-0.966,6.025],
+    [-8.545,-121.495,-3.271,16.668,25.539,-25.448,-0.028,1.778,2.088,5.372],
+    [-6.309,-110.409,0.325,-10.28,21.774,-34.111,-1.821,2.083,2.179,5.557],
   ]
 
   features = dict(zip(col_keys(), samples))
