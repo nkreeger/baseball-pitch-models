@@ -49,24 +49,24 @@ PITCH_CLASSES = [
   'Curveball']
 
 
-VX0_MIN = -22.026
-VX0_MAX = 19.4878168193
-VY0_MIN = -150.782746752869
-VY0_MAX = -64.4392183150571
-VZ0_MIN = -19.7706017189303
-VZ0_MAX = 27.815
-AX_MIN = -36.0593384891835
-AX_MAX = 32.5001540833473
-AY_MIN = 5.45147566871083
-AY_MAX = 48.53
-AZ_MIN = -61.86
-AZ_MAX = 11.046748574341
-PFX_X_MIN = -21.183690868172043
-PFX_X_MAX = 19.336301479608238
-PFX_Z_MIN = -70.206
-PFX_Z_MAX = 33.16047741119556
-START_SPEED_MIN = 45.1
-START_SPEED_MAX = 103.5
+VX0_MIN = -18.372
+VX0_MAX = 18.065
+VY0_MIN = -152.477
+VY0_MAX = -86.374
+VZ0_MIN = -15.646
+VZ0_MAX = 9.974
+AX_MIN = -48.0287647107959
+AX_MAX = 29.279
+AY_MIN = 10.137
+AY_MAX = 44.794
+AZ_MIN = -52.43
+AZ_MAX = 2.95522851438373
+PFX_X_MIN = -25.438405804093442
+PFX_X_MAX = 17.2
+PFX_Z_MIN = -15.24
+PFX_Z_MAX = 18.84426818102172
+START_SPEED_MIN = 59
+START_SPEED_MAX = 104.4
 
 
 def col_keys():
@@ -77,8 +77,8 @@ def col_keys():
     'ax',
     'ay',
     'az',
-    'pfx_x',
-    'pfx_z',
+    # 'pfx_x',
+    # 'pfx_z',
     'start_speed',
     'is_lefty'
   ]
@@ -110,13 +110,13 @@ def estimator_cols():
       key='az',
       normalizer_fn=lambda x: ((x - AZ_MIN) / (AZ_MAX - AZ_MIN))),
 
-    tf.feature_column.numeric_column(
-      key='pfx_x',
-      normalizer_fn=lambda x: ((x - PFX_X_MIN) / (PFX_X_MAX - PFX_X_MIN))),
+    # tf.feature_column.numeric_column(
+    #   key='pfx_x',
+    #   normalizer_fn=lambda x: ((x - PFX_X_MIN) / (PFX_X_MAX - PFX_X_MIN))),
 
-    tf.feature_column.numeric_column(
-      key='pfx_z',
-      normalizer_fn=lambda x: ((x - PFX_Z_MIN) / (PFX_Z_MAX - PFX_Z_MIN))),
+    # tf.feature_column.numeric_column(
+    #   key='pfx_z',
+    #   normalizer_fn=lambda x: ((x - PFX_Z_MIN) / (PFX_Z_MAX - PFX_Z_MIN))),
 
     tf.feature_column.numeric_column(
       key='start_speed',
@@ -165,8 +165,8 @@ def decode_csv_est(line):
     ax,
     ay,
     az,
-    pfx_x,
-    pfx_z,
+    # pfx_x,
+    # pfx_z,
     start_speed,
     is_left
   ]))

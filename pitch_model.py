@@ -43,7 +43,7 @@ def custom_classifier(features, labels, mode, params):
 def model(model_dir):
   return tf.estimator.DNNClassifier(
           feature_columns=pitch_data.estimator_cols(),
-          hidden_units=[34, 34],
+          hidden_units=[60, 60],
           activation_fn=tf.nn.relu,
           n_classes=7,
           optimizer=tf.train.AdamOptimizer(),
