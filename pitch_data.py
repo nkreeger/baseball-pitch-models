@@ -71,8 +71,14 @@ START_SPEED_MAX = 103.5
 
 def col_keys():
   return [
+    'vx0',
+    'vy0',
+    'vz0',
     'ax',
+    'ay',
+    'az',
     'pfx_x',
+    'pfx_z',
     'start_speed',
     'is_lefty'
   ]
@@ -80,33 +86,37 @@ def col_keys():
 
 def estimator_cols():
   return [
-    # tf.feature_column.numeric_column(
-    #   key='vx0',
-    #   normalizer_fn=lambda x: ((x - VX0_MIN) / (VX0_MAX - VX0_MIN))),
+    tf.feature_column.numeric_column(
+      key='vx0',
+      normalizer_fn=lambda x: ((x - VX0_MIN) / (VX0_MAX - VX0_MIN))),
 
-    # tf.feature_column.numeric_column(
-    #   key='vy0',
-    #   normalizer_fn=lambda x: ((x - VY0_MIN) / (VY0_MAX - VY0_MIN))),
+    tf.feature_column.numeric_column(
+      key='vy0',
+      normalizer_fn=lambda x: ((x - VY0_MIN) / (VY0_MAX - VY0_MIN))),
 
-    # tf.feature_column.numeric_column(
-    #   key='vz0',
-    #   normalizer_fn=lambda x: ((x - VZ0_MIN) / (VZ0_MAX - VZ0_MIN))),
+    tf.feature_column.numeric_column(
+      key='vz0',
+      normalizer_fn=lambda x: ((x - VZ0_MIN) / (VZ0_MAX - VZ0_MIN))),
 
     tf.feature_column.numeric_column(
       key='ax',
       normalizer_fn=lambda x: ((x - AX_MIN) / (AX_MAX - AX_MIN))),
 
-    # tf.feature_column.numeric_column(
-    #   key='ay',
-    #   normalizer_fn=lambda x: ((x - AY_MIN) / (AY_MAX - AY_MIN))),
+    tf.feature_column.numeric_column(
+      key='ay',
+      normalizer_fn=lambda x: ((x - AY_MIN) / (AY_MAX - AY_MIN))),
 
-    # tf.feature_column.numeric_column(
-    #   key='az',
-    #   normalizer_fn=lambda x: ((x - AZ_MIN) / (AZ_MAX - AZ_MIN))),
+    tf.feature_column.numeric_column(
+      key='az',
+      normalizer_fn=lambda x: ((x - AZ_MIN) / (AZ_MAX - AZ_MIN))),
 
     tf.feature_column.numeric_column(
       key='pfx_x',
       normalizer_fn=lambda x: ((x - PFX_X_MIN) / (PFX_X_MAX - PFX_X_MIN))),
+
+    tf.feature_column.numeric_column(
+      key='pfx_z',
+      normalizer_fn=lambda x: ((x - PFX_Z_MIN) / (PFX_Z_MAX - PFX_Z_MIN))),
 
     tf.feature_column.numeric_column(
       key='start_speed',
@@ -143,16 +153,23 @@ def decode_csv_est(line):
   z0 = parsed_line[16]
 
   pfx_x = parsed_line[10]
+  pfx_z = parsed_line[11]
   is_left = parsed_line[33]
 
   conf = parsed_line[28]
 
   features = dict(zip(col_keys(), [
-      ax,
-      pfx_x,
-      start_speed,
-      is_left
-      ]))
+    vx0,
+    vy0,
+    vz0,
+    ax,
+    ay,
+    az,
+    pfx_x,
+    pfx_z,
+    start_speed,
+    is_left
+  ]))
 
   return features, pitch_code
 
