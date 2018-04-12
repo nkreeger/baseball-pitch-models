@@ -19,11 +19,10 @@ def main(argv):
 
     print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 
-    # if idx % 10 == 0:
-    #   pitch_eval.print_eval(model)
+    if idx % 10 == 0:
+      pitch_eval.print_eval(model)
 
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
-  # run_eager(argv=sys.argv)
   tf.app.run(main)

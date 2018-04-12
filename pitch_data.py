@@ -199,6 +199,16 @@ def test_pitch():
     [-7.315775688,-106.030691,-2.015545536,-6.597280527,19.81207628,-33.8590337,-5.853302672,-1.494968722,73.1,1],
   ]
 
+  samples = {
+    'vx0': [],
+    'vy0': [],
+    'vz0': [],
+    'ax': [],
+    'ay': [],
+    'az': [],
+    'start_speed': [],
+    'is_left': []
+  }
+
   features = dict(zip(col_keys(), samples))
-  # TODO -from_tensor_slices
-  return tf.data.Dataset.from_tensors(features)
+  return tf.data.Dataset.from_tensor_slices(features)

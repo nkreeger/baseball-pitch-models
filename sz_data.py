@@ -36,16 +36,17 @@ def col_keys():
 def estimator_cols():
   return [
     tf.feature_column.numeric_column(
-      key='px'),
-      # normalizer_fn=lambda x: ((x - PX_MIN) / (PX_MAX - PX_MIN))),
+      key='px',
+      normalizer_fn=lambda x: ((x - PX_MIN) / (PX_MAX - PX_MIN))),
     tf.feature_column.numeric_column(
-      key='pz'),
-      # normalizer_fn=lambda x: ((x - PZ_MIN) / (PZ_MAX - PZ_MIN))),
+      key='pz',
+      normalizer_fn=lambda x: ((x - PZ_MIN) / (PZ_MAX - PZ_MIN))),
     tf.feature_column.numeric_column(
-      key='sz_top'),
-      # normalizer_fn=lambda x: ((x - SZ_HEIGHT_MIN) / (SZ_HEIGHT_MAX - SZ_HEIGHT_MIN))),
+      key='sz_top',
+      normalizer_fn=lambda x: ((x - SZ_TOP_MIN) / (SZ_TOP_MAX - SZ_TOP_MIN))),
     tf.feature_column.numeric_column(
-      key='sz_bot'),
+      key='sz_bot',
+      normalizer_fn=lambda x: ((x - SZ_BOT_MIN) / (SZ_BOT_MAX - SZ_BOT_MIN))),
   ]
 
 
@@ -56,10 +57,10 @@ def normalize(x, min, max):
 def decode_csv_est(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
-  px = normalize(parsed_line[0], PX_MIN, PX_MAX)
-  pz = normalize(parsed_line[1], PZ_MIN, PZ_MAX)
-  sz_top = normalize(parsed_line[2], SZ_TOP_MIN, SZ_TOP_MAX)
-  sz_bot = normalize(parsed_line[3], SZ_BOT_MIN, SZ_BOT_MAX)
+  px = parsed_line[0]
+  pz = parsed_line[1]
+  sz_top = parsed_line[2]
+  sz_bot = parsed_line[3]
 
   features = dict(zip(col_keys(), [
     px,
