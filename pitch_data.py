@@ -55,11 +55,10 @@ VZ0_MIN = -20.64
 VZ0_MAX = 17.856
 AX_MIN = -59.290089729458
 AX_MAX = 40.181
-AY_MIN = 6.696
+AY_MIN = 8.32652554182805
 AY_MAX = 49.18
 AZ_MIN = -52.756
 AZ_MAX = 8.645
-
 
 def col_keys():
   return [
@@ -152,7 +151,6 @@ def csv_eval_fn(filename, batchsize=100):
 
 
 def test_pitch():
-  # TODO - does this need to be normalized?
   samples = [
     [3.183,-135.149,-2.005,-16.296,29.576,-22.414],
     [-9.706,-135.569,-4.866,6.548,28.308,-14.883],
