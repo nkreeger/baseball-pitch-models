@@ -12,7 +12,7 @@ def main(argv):
     print('------ TRAIN ----------: {}'.format(idx))
     model.train(
             input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
-            steps=800)
+            steps=1000)
 
     eval_result = model.evaluate(
             input_fn=lambda:pitch_data.csv_eval_fn('test_data.csv', batchsize=100))
