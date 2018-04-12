@@ -6,8 +6,9 @@ import sz_data
 def sz_model():
   return tf.estimator.DNNClassifier(
           feature_columns=sz_data.estimator_cols(),
-          hidden_units=[20, 20],
+          hidden_units=[25, 25],
           n_classes=2,
+          optimizer=tf.train.AdamOptimizer(),
           model_dir='model_sz')
 
 
@@ -38,7 +39,7 @@ def main(argv):
   for idx in range(100):
     print('------ TRAIN ----------: {}'.format(idx))
     model.train(
-            input_fn=lambda:sz_data.csv_input_fn('sz_training_data.csv', batchsize=10),
+            input_fn=lambda:sz_data.csv_input_fn('sz_training_data.csv', batchsize=100),
             steps=1000)
 
     eval_result = model.evaluate(

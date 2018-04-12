@@ -1,59 +1,37 @@
 import tensorflow as tf
 
 import pitch_data
+import pitch_eval
 
 
-def custom_classifier(features, labels, mode, params):
-  net = tf.feature_column.input_layer(features, params['feature_columns'])
-  for units in params['hidden_units']:
-    net = tf.layers.dense(net, units=units, activation=tf.nn.relu)
-
-    logits = tf.layers.dense(net, params['n_classes'], activation=None)
-
-    # predictions:
-    predicted_classes = tf.argmax(logits, 1)
-    if mode == tf.estimator.ModeKeys.PREDICT:
-      predictions = {
-        'class_ids': predicted_classes[:, tf.newaxis],
-        'probabilities': tf.nn.softmax(logits),
-        'logits': logits,
-      }
-      return tf.estimator.EstimatorSpec(mode, predictions=predictions)
-
-    loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
-
-    accuracy = tf.metrics.accuracy(labels=labels,
-                                   predictions=predicted_classes,
-                                   name='acc_op')
-    metrics = {'accuracy': accuracy}
-    tf.summary.scalar('accuracy', accuracy[1])
-
-    if mode == tf.estimator.ModeKeys.EVAL:
-        return tf.estimator.EstimatorSpec(
-            mode, loss=loss, eval_metric_ops=metrics)
-
-    # Create training op.
-    assert mode == tf.estimator.ModeKeys.TRAIN
-
-    optimizer = tf.train.AdagradOptimizer(learning_rate=0.001)
-    train_op = optimizer.minimize(loss, global_step=tf.train.get_global_step())
-    return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op)
-
-
-def model(model_dir):
+def pitch_model(model_dir):
   return tf.estimator.DNNClassifier(
           feature_columns=pitch_data.estimator_cols(),
-          hidden_units=[150, 125, 100, 75, 50, 25],
-          activation_fn=tf.nn.relu,
+          hidden_units=[100, 75, 50, 25],
           n_classes=7,
           optimizer=tf.train.AdamOptimizer(),
           dropout=0.1,
-          model_dir='models')
+          model_dir='model_pitch')
 
-  # return tf.estimator.Estimator(
-  #   model_fn=custom_classifier,
-  #   params={
-  #     'feature_columns': cols,
-  #     'hidden_units': [250, 125, 75, 25],
-  #     'n_classes': 10
-  #   })
+
+def main(argv):
+  model = pitch_model('models')
+
+  for idx in range(100):
+    print('------ TRAIN ----------: {}'.format(idx))
+    model.train(
+            input_fn=lambda:pitch_data.csv_input_fn('training_data.csv', batchsize=100),
+            steps=1000)
+
+    eval_result = model.evaluate(
+            input_fn=lambda:pitch_data.csv_eval_fn('test_data.csv', batchsize=100))
+
+    print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
+
+    if idx % 10 == 0:
+      pitch_eval.print_eval(model)
+
+
+if __name__ == '__main__':
+  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.app.run(main)

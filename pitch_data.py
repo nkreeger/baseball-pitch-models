@@ -5,37 +5,38 @@ csv_column_types = [
   [''], # des (0)
   [],   # id (1)
   [''], # type (2)
-  [''], # tfs_zulu (3)
-  [],   # x (4)
-  [],   # y (5)
-  [],   # start_speed (6)
-  [],   # end_speed (7)
-  [],   # sz_top (8)
-  [],   # sz_bot (9)
-  [],   # pfx_x (10)
-  [],   # pfx_z (11)
-  [],   # px (12)
-  [],   # pz (13)
-  [],   # x0 (14)
-  [],   # y0 (15)
-  [],   # z0 (16)
-  [],   # vx0 (17)
-  [],   # vy0 (18)
-  [],   # vz0 (19)
-  [],   # ax (20)
-  [],   # ay (21)
-  [],   # az (22)
-  [],   # break_y (23)
-  [],   # break_angle (24)
-  [],   # break_length (25)
-  [''], # pitch_type (26)
-  [0],  # pitch_code (27)
-  [],   # type_confidence (28)
-  [],   # zone (29)
-  [],   # nasty (30)
-  [],   # spin_dir (31)
-  [],   # spin_rate (32)
-  [],   # is lefty (33)
+  [''], # code (3)
+  [''], # tfs_zulu (4)
+  [],   # x (5)
+  [],   # y (6)
+  [],   # start_speed (7)
+  [],   # end_speed (8)
+  [],   # sz_top (9)
+  [],   # sz_bot (10)
+  [],   # pfx_x (11)
+  [],   # pfx_z (12)
+  [],   # px (13)
+  [],   # pz (14)
+  [],   # x0 (15)
+  [],   # y0 (16)
+  [],   # z0 (17)
+  [],   # vx0 (18)
+  [],   # vy0 (19)
+  [],   # vz0 (20)
+  [],   # ax (21)
+  [],   # ay (22)
+  [],   # az (23)
+  [],   # break_y (24)
+  [],   # break_angle (25)
+  [],   # break_length (26)
+  [''], # pitch_type (27)
+  [0],  # pitch_code (28)
+  [],   # type_confidence (29)
+  [],   # zone (30)
+  [],   # nasty (31)
+  [],   # spin_dir (32)
+  [],   # spin_rate (33)
+  [],   # is lefty (34)
 ]
 
 
@@ -129,34 +130,22 @@ def estimator_cols():
 def decode_csv_est(line):
   parsed_line = tf.decode_csv(line, record_defaults=csv_column_types)
 
-  pitch_code = parsed_line[27]
+  pitch_code = parsed_line[28]
 
-  break_y = parsed_line[23]
-  break_angle = parsed_line[24]
-  break_length = parsed_line[25]
+  vx0 = parsed_line[18]
+  vy0 = parsed_line[19]
+  vz0 = parsed_line[20]
 
-  ax = parsed_line[20]
-  ay = parsed_line[21]
-  az = parsed_line[22]
+  ax = parsed_line[21]
+  ay = parsed_line[22]
+  az = parsed_line[23]
 
-  vx0 = parsed_line[17]
-  vy0 = parsed_line[18]
-  vz0 = parsed_line[19]
+  px = parsed_line[13]
+  pz = parsed_line[14]
 
-  px = parsed_line[12]
-  pz = parsed_line[13]
+  start_speed = parsed_line[7]
 
-  start_speed = parsed_line[6]
-  end_speed = parsed_line[7]
-
-  x0 = parsed_line[14]
-  z0 = parsed_line[16]
-
-  pfx_x = parsed_line[10]
-  pfx_z = parsed_line[11]
-  is_left = parsed_line[33]
-
-  conf = parsed_line[28]
+  is_left = parsed_line[34]
 
   features = dict(zip(col_keys(), [
     vx0,

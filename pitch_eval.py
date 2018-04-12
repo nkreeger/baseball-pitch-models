@@ -28,10 +28,9 @@ def print_eval(model):
 
 
 def main(argv):
-  print_eval(pitch_model.model('models'))
+  print_eval(pitch_model.model('model_pitch'))
 
 
 if __name__ == '__main__':
   tf.logging.set_verbosity(tf.logging.INFO)
-  # run_eager(argv=sys.argv)
   tf.app.run(main)
