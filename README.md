@@ -1,4 +1,4 @@
-# mlb-pitch-model
+# baseball-pitch-model
 Trains a simple classification model to predict MLB PitchFX pitches.
 
 ## Download Training Data:
@@ -6,17 +6,28 @@ Trains a simple classification model to predict MLB PitchFX pitches.
 $ ./scripts/download-training-data.sh
 ```
 
-## Run Training Model:
+## Run Pitch Classifier Training Model:
 ```
-$ python pitch_train.py
+$ python pitch_model.py
+```
+
+## Run StrikeZone Classifier Training Model:
+```
+$ python sz_model.py
 ```
 
 ## Start Tensorboard:
+- Pitch Classifier:
 ```
-$ tensorboard --logdir=models/
+$ tensorboard --logdir=models_pitch/
+```
+
+- StrikeZone Classifier:
+```
+$ tensorboard --logdir=models_sz/
 ```
 
 ## Wipe Models Directory:
 ```
-$ rm -rf models/*
+$ rm -rf models_*
 ```
