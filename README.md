@@ -1,5 +1,5 @@
-# baseball-pitch-model
-Trains a simple classification model to predict MLB PitchFX pitches.
+# baseball-pitch-models
+Deep TensorFlow models for classifiying pitches and strike zone probabilities.
 
 ## Download Training Data:
 ```
