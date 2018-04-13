@@ -28,7 +28,7 @@ def print_eval(model):
 
 
 def main(argv):
-  print_eval(pitch_model.model('model_pitch'))
+  print_eval(pitch_model.pitch_model('model_pitch'))
 
 
 if __name__ == '__main__':
