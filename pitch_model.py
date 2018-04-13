@@ -7,7 +7,7 @@ import pitch_eval
 def pitch_model(model_dir):
   return tf.estimator.DNNClassifier(
           feature_columns=pitch_data.estimator_cols(),
-          hidden_units=[100, 75, 50, 25],
+          hidden_units=[200, 150, 100],
           n_classes=7,
           optimizer=tf.train.AdamOptimizer(),
           dropout=0.1,
