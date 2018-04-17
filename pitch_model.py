@@ -4,7 +4,7 @@ import pitch_data
 import pitch_eval
 
 
-def pitch_model(model_dir):
+def pitch_model():
   return tf.estimator.DNNClassifier(
           feature_columns=pitch_data.estimator_cols(),
           hidden_units=[200, 150, 100],
@@ -15,7 +15,7 @@ def pitch_model(model_dir):
 
 
 def main(argv):
-  model = pitch_model('models')
+  model = pitch_model()
 
   for idx in range(100):
     print('------ TRAIN ----------: {}'.format(idx))
