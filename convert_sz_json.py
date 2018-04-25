@@ -16,6 +16,7 @@ def normalize(x, min, max):
   return (x - min) / (max - min)
 
 
+# TODO - refactor this
 def convert_json(file):
   with open(file) as f:
     content = f.readlines()
