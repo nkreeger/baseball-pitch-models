@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+
 
 # Pitch CSV column definitions
 csv_column_types = [
@@ -68,6 +70,33 @@ PFX_Z_MIN = -15.24
 PFX_Z_MAX = 18.84426818102172
 START_SPEED_MIN = 59
 START_SPEED_MAX = 104.4
+
+
+def load_np_data(filename):
+  with open(filename) as f:
+    content = f.readlines()
+
+  features = []
+  labels = []
+  for line in content:
+    items = line.split(',')
+
+    f = [float(x) for x in items[:7]]
+    features.append(f)
+
+    labels.append(int(items[7]))
+  
+  combo = list(zip(features, labels))
+  np.random.shuffle(combo)
+
+  features, labels = zip(*combo)
+  return (np.array(features, dtype=np.float32), _to_one_hot(labels, 7))
+
+
+def _to_one_hot(indices, num_classes):
+  one_hot = np.zeros([len(indices), num_classes], dtype=np.float32)
+  one_hot[np.arange(len(indices)), indices] = 1
+  return one_hot
 
 
 def col_keys():
