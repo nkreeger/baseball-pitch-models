@@ -54,20 +54,16 @@ PITCH_CLASSES = [
 
 VX0_MIN = -18.885
 VX0_MAX = 18.065
-VY0_MIN = -152.477
+VY0_MIN = -152.463
 VY0_MAX = -86.374
-VZ0_MIN = -15.646
+VZ0_MIN = -15.5146078412997
 VZ0_MAX = 9.974
 AX_MIN = -48.0287647107959
-AX_MAX = 30.302
-AY_MIN = 9.723
+AX_MAX = 30.592
+AY_MIN = 9.397
 AY_MAX = 49.18
-AZ_MIN = -52.43
+AZ_MIN = -49.339
 AZ_MAX = 2.95522851438373
-PFX_X_MIN = -25.438405804093442
-PFX_X_MAX = 17.2
-PFX_Z_MIN = -15.24
-PFX_Z_MAX = 18.84426818102172
 START_SPEED_MIN = 59
 START_SPEED_MAX = 104.4
 
@@ -81,11 +77,11 @@ def load_np_data(filename):
   for line in content:
     items = line.split(',')
 
-    f = [float(x) for x in items[:7]]
+    f = [float(x) for x in items[:8]]
     features.append(f)
 
-    labels.append(int(items[7]))
-  
+    labels.append(int(items[8]))
+
   combo = list(zip(features, labels))
   np.random.shuffle(combo)
 

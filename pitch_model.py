@@ -22,16 +22,16 @@ def keras_model():
 
   model = keras.models.Sequential()
   model.add(keras.layers.Dense(
-    200, input_shape=[7], use_bias=True, activation='relu', name='Dense1'))
+    250, input_shape=[8], use_bias=True, activation='relu', name='Dense1'))
   model.add(keras.layers.Dense(
-    150, use_bias=True, activation='relu', name='Dense2'))
+    175, use_bias=True, activation='relu', name='Dense2'))
   model.add(keras.layers.Dense(
-    100, use_bias=True, activation='relu', name='Dense3'))
+    150, use_bias=True, activation='relu', name='Dense3'))
   model.add(keras.layers.Dense(
     7, use_bias=True, activation='softmax', name='DenseSOFTMAX'))
   model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-  model.fit(features, labels, batch_size=50, epochs=100)
+  model.fit(features, labels, batch_size=50, epochs=500)
 
   # Run prediction on the training set.
   pred_ys = np.argmax(model.predict(features), axis=1)
