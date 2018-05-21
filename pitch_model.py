@@ -23,10 +23,13 @@ def keras_model():
   model = keras.models.Sequential()
   model.add(keras.layers.Dense(
     250, input_shape=[8], use_bias=True, activation='relu', name='Dense1'))
+  model.add(keras.layers.Dropout(0.1))
   model.add(keras.layers.Dense(
     175, use_bias=True, activation='relu', name='Dense2'))
+  model.add(keras.layers.Dropout(0.1))
   model.add(keras.layers.Dense(
     150, use_bias=True, activation='relu', name='Dense3'))
+  model.add(keras.layers.Dropout(0.1))
   model.add(keras.layers.Dense(
     7, use_bias=True, activation='softmax', name='DenseSOFTMAX'))
   model.compile(loss='categorical_crossentropy', optimizer='adam')
